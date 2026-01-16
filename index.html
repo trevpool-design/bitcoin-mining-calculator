@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pantheon Mining Calculator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Bitcoin Mining Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#0B1C2D;
@@ -20,19 +20,20 @@
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family:"IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
       background:
         radial-gradient(900px 600px at 80% -10%, rgba(247,147,26,0.10), transparent 60%),
         radial-gradient(800px 500px at -10% 10%, rgba(38,54,71,0.40), transparent 55%),
         linear-gradient(180deg, #071421 0%, #0B1C2D 50%, #081521 100%);
     }
+    h1,h2{font-family:"IBM Plex Serif", Georgia, "Times New Roman", serif;}
     .wrap{max-width:1120px; margin:0 auto; padding:28px 18px 60px;}
     header{display:flex; align-items:center; justify-content:space-between; gap:16px;}
     .brand{font-weight:700; letter-spacing:0.2px;}
     .pill{border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted);} 
     .hero{margin-top:36px; display:grid; grid-template-columns:1.1fr 0.9fr; gap:24px; align-items:center;}
-    .hero h1{font-size:40px; margin:0 0 14px; line-height:1.1;}
+    .hero h1{font-size:42px; margin:0 0 14px; line-height:1.1;}
     .hero p{margin:0 0 18px; color:var(--muted); font-size:16px;}
     .cta{display:flex; gap:12px; flex-wrap:wrap;}
     .btn{
@@ -45,6 +46,9 @@
       background:rgba(18,30,43,0.7); border:1px solid var(--line);
       border-radius:var(--radius); padding:16px; box-shadow:0 12px 24px rgba(0,0,0,0.25);
     }
+    .signal{display:flex; gap:10px; align-items:flex-start;}
+    .dot{width:8px; height:8px; border-radius:999px; background:var(--accent); margin-top:6px;}
+    .banner{margin-top:22px; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:rgba(18,30,43,0.55);}
     .grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:26px;}
     .k{font-size:12px; color:var(--muted); letter-spacing:0.3px;}
     .v{font-size:20px; font-weight:700; margin-top:6px;}
@@ -65,7 +69,7 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">Pantheon Mining</div>
+      <div class="brand">Bitcoin Mining Calculator</div>
       <div class="pill">Investor Calculator v8</div>
     </header>
 
@@ -81,6 +85,7 @@
           <a class="btn" href="calculator.html#executive">View Executive Snapshot</a>
         </div>
         <div class="mono" style="margin-top:12px;">Latest: cycle-based BTC price model, live FX and hashrate refresh, one-page export.</div>
+        <div class="banner mono">Tip: open the calculator in a browser-served URL (not file://) to enable live data.</div>
       </div>
       <div class="card">
         <div class="k">What it does</div>
@@ -104,6 +109,28 @@
       <div class="card">
         <div class="k">Discipline</div>
         <div class="v">Conservative defaults and risk visibility</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Key signals it surfaces</h2>
+      <div class="list">
+        <div class="card">
+          <div class="signal"><span class="dot"></span><div><div class="k">Cost basis</div><div class="v">Power cost dominates</div></div></div>
+          <p class="mono" style="margin-top:8px;">Small changes in $/kWh materially swing MOIC.</p>
+        </div>
+        <div class="card">
+          <div class="signal"><span class="dot"></span><div><div class="k">Competition</div><div class="v">Difficulty growth compounds</div></div></div>
+          <p class="mono" style="margin-top:8px;">The model treats difficulty as a rising headwind, not a flat assumption.</p>
+        </div>
+        <div class="card">
+          <div class="signal"><span class="dot"></span><div><div class="k">Cycle risk</div><div class="v">Non-linear price paths</div></div></div>
+          <p class="mono" style="margin-top:8px;">Cycle drift and amplitude show the cost of timing, not just trend.</p>
+        </div>
+        <div class="card">
+          <div class="signal"><span class="dot"></span><div><div class="k">Capital drag</div><div class="v">Upfront capex matters</div></div></div>
+          <p class="mono" style="margin-top:8px;">Compare mining vs DCA on equal cash invested.</p>
+        </div>
       </div>
     </section>
 
