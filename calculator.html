@@ -221,27 +221,12 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       z-index:4;
     }
 
-  
-    /* Investor mode switch */
-    .switch{position:relative; display:inline-block; width:44px; height:24px}
-    .switch input{opacity:0; width:0; height:0}
-    .switch .slider{position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:rgba(148,163,184,.35); transition:.2s; border-radius:999px; box-shadow:inset 0 0 0 1px rgba(148,163,184,.25)}
-    .switch .slider:before{position:absolute; content:""; height:18px; width:18px; left:3px; top:3px; background:white; transition:.2s; border-radius:999px}
-    .switch input:checked + .slider{background:linear-gradient(135deg, var(--accent), var(--accent2))}
-    .switch input:checked + .slider:before{transform:translateX(20px)}
-    bodybody.investor-mode .investor-badge{display:inline-flex !important;}
-    .investor-badge{display:none; gap:8px; align-items:center; font-size:12px; padding:6px 10px; border-radius:999px; background:rgba(34,197,94,.12); color:#bbf7d0; border:1px solid rgba(34,197,94,.25)}
     /* Sticky table headers and first column */
     .table-scroll{position:relative}
     #cashflowTable thead th{position:sticky; top:0; z-index:3; background:rgba(11,18,32,.98); backdrop-filter:blur(8px)}
     #cashflowTable th:first-child, #cashflowTable td:first-child{position:sticky; left:0; z-index:2; background:rgba(11,18,32,.98)}
     #cashflowTable thead th:first-child{z-index:4}
     tr.year-subtotal td{background:rgba(148,163,184,.08); font-weight:700}
-
-/* Investor Mode behavior */
-body.investor-mode .tab-btn[data-tab="sensitivity"],
-body.investor-mode .tab-btn[data-tab="montecarlo"],
-body.investor-mode .investor-badge{ display:flex; }
 
 </style>
 </head>
@@ -266,17 +251,6 @@ body.investor-mode .investor-badge{ display:flex; }
           <div class="pill" title="Single-file demo: CSS + JS included">v8 - cycle model</div>
         </div>
         <button id="resetBtn" class="btn small danger" title="Reset everything to defaults">Reset</button>
-      </div>
-
-      <div class="row" style="margin:10px 0 14px; align-items:center; justify-content:space-between">
-        <div>
-          <div style="font-weight:700">Investor Mode</div>
-          <div class="muted" style="font-size:12px; line-height:1.2">Simplified view + locked advanced assumptions</div>
-        </div>
-        <label class="switch" title="Toggle Investor Mode">
-          <input type="checkbox" id="investorMode" checked>
-          <span class="slider"></span>
-        </label>
       </div>
 
       <label>Choose Project</label>
@@ -499,7 +473,6 @@ body.investor-mode .investor-badge{ display:flex; }
         <button class="btn tab-btn" data-tab="montecarlo">Monte Carlo</button>
               </div>
       <div class="row" style="align-items:center; justify-content:space-between; margin:10px 0 14px">
-        <div class="investor-badge"><span style="width:8px;height:8px;border-radius:99px;background:rgba(34,197,94,.95);display:inline-block"></span>Investor Mode</div>
         <div class="muted" style="font-size:12px">As of <span id="timestamp2">—</span></div>
       </div>
 
@@ -705,9 +678,9 @@ const DEFAULTS = {
   minerCount: 138,
   holdMonths: 60,
   scenario: "base",
-  investorMode: true,
-  advancedUnlocked: false,
-  cashflowView: "annual",
+  investorMode: false,
+  advancedUnlocked: true,
+  cashflowView: "monthly",
   btcOverride: "",
   priceDrift: 20,
   priceCycleAmp: 60,

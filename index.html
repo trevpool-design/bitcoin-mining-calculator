@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pantheon Mining | Landing</title>
+  <title>Pantheon Mining</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -26,15 +26,27 @@
         radial-gradient(900px 600px at 80% -10%, rgba(247,147,26,0.10), transparent 60%),
         radial-gradient(800px 500px at -10% 10%, rgba(38,54,71,0.40), transparent 55%),
         linear-gradient(180deg, #071421 0%, #0B1C2D 50%, #081521 100%);
+      position:relative;
+    }
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size:60px 60px;
+      opacity:0.3;
+      pointer-events:none;
     }
     h1,h2,h3{font-family:"IBM Plex Serif", Georgia, "Times New Roman", serif;}
-    .wrap{max-width:1120px; margin:0 auto; padding:28px 18px 60px;}
+    .wrap{max-width:1120px; margin:0 auto; padding:28px 18px 60px; position:relative; z-index:1;}
     header{display:flex; align-items:center; justify-content:space-between; gap:16px;}
     .brand{font-weight:700; letter-spacing:0.2px;}
     .pill{border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted);} 
 
-    .hero{margin-top:36px; display:grid; grid-template-columns:1.1fr 0.9fr; gap:24px; align-items:center;}
-    .hero h1{font-size:42px; margin:0 0 14px; line-height:1.1;}
+    .hero{margin-top:36px; display:grid; grid-template-columns:1.1fr 0.9fr; gap:28px; align-items:center;}
+    .hero h1{font-size:44px; margin:0 0 14px; line-height:1.05;}
     .hero p{margin:0 0 18px; color:var(--muted); font-size:16px;}
     .cta{display:flex; gap:12px; flex-wrap:wrap;}
     .btn{
@@ -48,25 +60,45 @@
       background:rgba(18,30,43,0.7); border:1px solid var(--line);
       border-radius:var(--radius); padding:16px; box-shadow:0 12px 24px rgba(0,0,0,0.25);
     }
+    .hero-card{background:linear-gradient(160deg, rgba(247,147,26,0.10), rgba(18,30,43,0.75));}
+
     .section{margin-top:36px;}
     .section h2{font-size:18px; margin:0 0 12px;}
-    .grid3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px;}
-    .grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px;}
 
     .k{font-size:12px; color:var(--muted); letter-spacing:0.3px;}
     .v{font-size:18px; font-weight:700; margin-top:6px;}
 
-    .table{
-      width:100%; border-collapse:collapse; margin-top:12px; font-size:12px;
-      border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    .compare-grid{
+      display:grid;
+      grid-template-columns:140px repeat(3, minmax(0,1fr));
+      gap:8px;
+      margin-top:10px;
     }
-    .table th,.table td{padding:10px 8px; text-align:left; border-bottom:1px solid var(--line);}
-    .table th{color:var(--muted); font-weight:600; background:rgba(18,30,43,0.6);}
-    .table td{background:rgba(18,30,43,0.35);}    
+    .compare-grid > div{
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(18,30,43,0.45);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .compare-grid .corner{border:0; background:transparent;}
+    .compare-grid .head{
+      text-align:center; font-weight:700; color:var(--text);
+      background:rgba(247,147,26,0.12); border-color:rgba(247,147,26,0.35);
+    }
+    .compare-grid .label{background:rgba(18,30,43,0.65); color:var(--muted); font-weight:600;}
 
-    .flow{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; align-items:center;}
-    .flow .step{padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(18,30,43,0.4); text-align:center; font-size:12px;}
-    .flow .arrow{font-size:20px; color:var(--muted); text-align:center;}
+    .flow{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; align-items:center;}
+    .flow .step{
+      padding:12px; border:1px solid var(--line); border-radius:12px;
+      background:rgba(18,30,43,0.4); text-align:center; font-size:12px; font-weight:600;
+      position:relative;
+    }
+    .flow .step:not(:last-child)::after{
+      content:""; position:absolute; right:-12px; top:50%; width:12px; height:2px;
+      background:var(--line); transform:translateY(-50%);
+    }
 
     .bullets{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px;}
     .bullet{padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(18,30,43,0.35); font-size:12px;}
@@ -74,11 +106,21 @@
     .disclosure{font-size:12px; color:var(--muted); line-height:1.5;}
     .footer{margin-top:42px; color:var(--muted); font-size:12px; border-top:1px solid var(--line); padding-top:16px;}
 
+    .fade{animation:fadeUp 0.7s ease both;}
+    .delay-1{animation-delay:0.05s;}
+    .delay-2{animation-delay:0.12s;}
+    .delay-3{animation-delay:0.18s;}
+
+    @keyframes fadeUp{
+      from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);}
+    }
+
     @media (max-width: 980px){
       .hero{grid-template-columns:1fr;}
-      .grid3{grid-template-columns:1fr;}
-      .grid2{grid-template-columns:1fr;}
+      .compare-grid{grid-template-columns:1fr;}
+      .compare-grid .corner{display:none;}
       .flow{grid-template-columns:1fr;}
+      .flow .step:not(:last-child)::after{display:none;}
       .bullets{grid-template-columns:1fr;}
       header{flex-direction:column; align-items:flex-start;}
     }
@@ -86,12 +128,12 @@
 </head>
 <body>
   <div class="wrap">
-    <header>
+    <header class="fade">
       <div class="brand">Pantheon Mining</div>
       <div class="pill">Investor Calculator v8</div>
     </header>
 
-    <section class="hero">
+    <section class="hero fade delay-1">
       <div>
         <h1>Own hashpower. Earn BTC - Straight to your Wallet.</h1>
         <p>
@@ -103,70 +145,55 @@
           <a class="btn" href="calculator.html#onepager">Download 1-page explainer</a>
         </div>
       </div>
-      <div class="card">
+      <div class="card hero-card">
         <div class="k">Quick compare</div>
         <div class="v">Mine vs Buy vs Hybrid</div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Mine</th>
-              <th>Buy</th>
-              <th>Hybrid</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Exposure</td>
-              <td>BTC + operational upside</td>
-              <td>BTC price only</td>
-              <td>BTC + partial ops</td>
-            </tr>
-            <tr>
-              <td>Volatility</td>
-              <td>High (price + ops)</td>
-              <td>High (price)</td>
-              <td>Moderate</td>
-            </tr>
-            <tr>
-              <td>Operating risk</td>
-              <td>High (power, uptime)</td>
-              <td>Low</td>
-              <td>Medium</td>
-            </tr>
-            <tr>
-              <td>Cost basis behavior</td>
-              <td>Reduces over time</td>
-              <td>Spot cost basis</td>
-              <td>Smooths entry</td>
-            </tr>
-            <tr>
-              <td>Liquidity</td>
-              <td>Medium (asset bound)</td>
-              <td>High</td>
-              <td>Medium-high</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="compare-grid">
+          <div class="corner"></div>
+          <div class="head">Mine</div>
+          <div class="head">Buy</div>
+          <div class="head">Hybrid</div>
+
+          <div class="label">Exposure</div>
+          <div>BTC + operational upside</div>
+          <div>BTC price only</div>
+          <div>BTC + partial ops</div>
+
+          <div class="label">Volatility</div>
+          <div>High (price + ops)</div>
+          <div>High (price)</div>
+          <div>Moderate</div>
+
+          <div class="label">Operating risk</div>
+          <div>High (power, uptime)</div>
+          <div>Low</div>
+          <div>Medium</div>
+
+          <div class="label">Cost basis behavior</div>
+          <div>Reduces over time</div>
+          <div>Spot cost basis</div>
+          <div>Smooths entry</div>
+
+          <div class="label">Liquidity</div>
+          <div>Medium (asset bound)</div>
+          <div>High</div>
+          <div>Medium-high</div>
+        </div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section fade delay-2">
       <h2>How mining generates returns</h2>
       <div class="flow">
         <div class="step">Capex</div>
-        <div class="arrow">?</div>
         <div class="step">Hashpower</div>
-        <div class="arrow">?</div>
         <div class="step">BTC production</div>
-        <div class="arrow">?</div>
         <div class="step">Costs/fees</div>
-        <div class="arrow">?</div>
         <div class="step">BTC held/sold</div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section fade delay-2">
       <h2>What drives outcomes</h2>
       <div class="bullets">
         <div class="bullet"><strong>BTC price</strong><br/>Cycle and drift dominate returns.</div>
@@ -177,15 +204,13 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section fade delay-3">
       <h2>Risks & disclosures</h2>
-      <div class="grid2">
-        <div class="card disclosure">
-          Returns depend on BTC price, network difficulty, and operational execution. This calculator is scenario-based and pre-tax, with simplified assumptions.
-        </div>
-        <div class="card disclosure">
-          Past performance and model outputs do not guarantee future results. Hardware performance, downtime, and counterparty risk can materially affect outcomes.
-        </div>
+      <div class="card disclosure" style="margin-bottom:12px;">
+        Returns depend on BTC price, network difficulty, and operational execution. This calculator is scenario-based and pre-tax, with simplified assumptions.
+      </div>
+      <div class="card disclosure">
+        Past performance and model outputs do not guarantee future results. Hardware performance, downtime, and counterparty risk can materially affect outcomes.
       </div>
     </section>
 
