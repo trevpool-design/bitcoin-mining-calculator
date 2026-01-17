@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pantheon Mining Calculator v8</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --bg:#0B1C2D;
+      --panel:#121E2B;
+      --panel2:#162638;
+      --text:#F5F7FA;
+      --muted:#8A95A3;
+      --line:#263647;
+      --accent:#F7931A;
+      --accent2:#D9822B;
+      --warn:#E5B454;
+      --danger:#D66A6A;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:linear-gradient(180deg,#081521,#0B1C2D 35%, #081521);
+      color:var(--text);
+    }
+    .container{
+      max-width:1280px;
+      margin:22px auto;
+      padding:0 14px;
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:16px;
+    }
+    .sidebar,.main{
+      background:rgba(17,24,39,.86);
+      border:1px solid rgba(35,48,71,.8);
+      border-radius:var(--radius);
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .sidebar{
+      padding:16px 16px 18px;
+      position:sticky;
+      top:14px;
+      height:calc(100dvh - 28px);
+      overflow:auto;
+    }
+    .main{padding:14px}
+    h2,h3{margin:0 0 10px}
+    h2{font-size:18px}
+    h3{font-size:14px; color:#f3f4f6}
+    label{display:block; margin-top:12px; color:var(--muted); font-size:12px}
+    select,input[type="number"],input[type="text"]{
+      width:100%;
+      margin-top:6px;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(35,48,71,.9);
+      background:rgba(15,23,42,.7);
+      color:var(--text);
+      outline:none;
+    }
+    input[readonly]{opacity:.9}
+    .row{display:flex; gap:10px; align-items:center}
+    .row > *{flex:1}
+    .counter{
+      display:grid;
+      grid-template-columns:44px 1fr 44px;
+      gap:8px;
+      align-items:center;
+      margin-top:6px;
+    }
+    .btn{
+      border:1px solid rgba(35,48,71,.9);
+      background:rgba(15,23,42,.7);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px;
+      cursor:pointer;
+      transition:.15s transform, .15s background;
+      user-select:none;
+    }
+    .btn:hover{background:rgba(15,23,42,.92)}
+    .btn:active{transform:scale(.98)}
+    .btn.small{padding:8px 10px; border-radius:11px; font-size:12px}
+    .btn.primary{border-color:rgba(96,165,250,.75); background:rgba(96,165,250,.15)}
+    .btn.ghost{background:transparent}
+    .btn.danger{border-color:rgba(251,113,133,.65); background:rgba(251,113,133,.12)}
+    .capex{margin:8px 0 0; color:var(--muted); font-size:12px}
+    .scenarios{display:flex; gap:8px; margin-top:6px}
+    .scenario-btn{flex:1}
+    .scenario-btn.active{border-color:rgba(52,211,153,.75); background:rgba(52,211,153,.14)}
+    .price-row{display:grid; grid-template-columns:1fr 44px; gap:8px; align-items:center; margin-top:6px}
+    .refresh-btn{width:44px}
+    .tabs{display:flex; gap:8px; margin-bottom:12px}
+    .tab-btn{flex:1}
+    .tab-btn.active{border-color:rgba(96,165,250,.75); background:rgba(96,165,250,.15)}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .tiles{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:10px;
+      margin:10px 0 14px;
+    }
+    .tile{
+      background:rgba(15,23,42,.55);
+      border:1px solid rgba(35,48,71,.8);
+      border-radius:var(--radius);
+      padding:12px;
+      min-height:70px;
+    }
+    .tile h4,.tile h3{
+      margin:0 0 6px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+    .tile p{margin:0; font-size:18px; font-weight:700}
+    .graph-title{margin-top:10px}
+    /* Chart.js canvas sizing: keep charts from growing with content */
+.chart-box{height:260px;}
+.chart-box canvas{width:100% !important; height:100% !important;}
+canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border-radius:var(--radius);}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:var(--radius);
+      border:1px solid rgba(35,48,71,.8);
+      background:rgba(15,23,42,.35);
+    }
+    th,td{
+      padding:10px 8px;
+      border-bottom:1px solid rgba(35,48,71,.6);
+      font-size:12px;
+      text-align:right;
+      white-space:nowrap;
+    }
+    th:first-child, td:first-child{text-align:left}
+    th{color:var(--muted); font-weight:600; background:rgba(17,24,39,.6)}
+    tr:hover td{background:rgba(96,165,250,.05)}
+    .yearly-tiles{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+    .yearly-tiles .tile p{font-size:14px}
+    .comparison{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .muted{color:var(--muted)}
+    .divider{height:1px; background:rgba(35,48,71,.8); margin:12px 0}
+    .slider-wrap{
+      margin-top:6px;
+      display:grid;
+      grid-template-columns:1fr 86px;
+      gap:10px;
+      align-items:center;
+    }
+    input[type="range"]{width:100%}
+    .pill{
+      display:inline-flex; gap:6px; align-items:center;
+      padding:6px 10px; border-radius:999px;
+      background:rgba(15,23,42,.55);
+      border:1px solid rgba(35,48,71,.8);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .note{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .sticky-actions{
+      position:sticky; bottom:0;
+      padding:12px 0 0;
+      background:linear-gradient(180deg, rgba(17,24,39,0), rgba(17,24,39,.94) 35%, rgba(17,24,39,1));
+    }
+    @media (max-width: 980px){
+      .container{grid-template-columns:1fr}
+      .sidebar{position:relative; height:auto}
+      .tiles{grid-template-columns:1fr}
+      .yearly-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .comparison{grid-template-columns:1fr}
+    }
+  
+    /* Cashflow table usability */
+    .table-scroll{
+      width:100%;
+      overflow:auto;
+      border-radius:var(--radius);
+      border:1px solid rgba(35,48,71,.8);
+      background:rgba(15,23,42,.20);
+    }
+    .table-scroll table{
+      border:0;
+      min-width: 1100px; /* ensures horizontal scroll on narrow viewports */
+      background:transparent;
+    }
+    .table-scroll thead th{
+      position:sticky;
+      top:0;
+      z-index:3;
+      background:rgba(17,24,39,.95);
+      backdrop-filter: blur(6px);
+    }
+    .table-scroll tbody td{
+      background:rgba(15,23,42,.20);
+    }
+    .table-scroll th:first-child,
+    .table-scroll td:first-child{
+      position:sticky;
+      left:0;
+      z-index:2;
+      background:rgba(17,24,39,.92);
+    }
+    .table-scroll thead th:first-child{
+      z-index:4;
+    }
+
+    /* Sticky table headers and first column */
+    .table-scroll{position:relative}
+    #cashflowTable thead th{position:sticky; top:0; z-index:3; background:rgba(11,18,32,.98); backdrop-filter:blur(8px)}
+    #cashflowTable th:first-child, #cashflowTable td:first-child{position:sticky; left:0; z-index:2; background:rgba(11,18,32,.98)}
+    #cashflowTable thead th:first-child{z-index:4}
+    tr.year-subtotal td{background:rgba(148,163,184,.08); font-weight:700}
+
+</style>
+</head>
+
+<body>
+
+  <div id="errorBanner" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:rgba(15,23,42,.96);border:1px solid rgba(251,113,133,.65);border-radius:14px;padding:12px 14px;color:#e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,.35)">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+      <div style="min-width:0">
+        <div style="font-weight:700;color:#fb7185;margin-bottom:6px">Calculator error</div>
+        <pre id="errorText" style="margin:0;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:12px;color:#e5e7eb"></pre>
+      </div>
+      <button id="errorClose" class="btn small" style="flex:0 0 auto;border-color:rgba(251,113,133,.65);background:rgba(251,113,133,.12)">Dismiss</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="row" style="align-items:flex-end">
+        <div>
+          <h2>Investment Calculator</h2>
+          <div class="pill" title="Single-file demo: CSS + JS included">v8 - cycle model</div>
+        </div>
+        <button id="resetBtn" class="btn small danger" title="Reset everything to defaults">Reset</button>
+      </div>
+
+      <label>Choose Project</label>
+      <select id="project">
+        <option>UAE: Operation SandHash 2</option>
+      </select>
+
+      <label>Choose Miners</label>
+      <select id="minerModel">
+        <option value="s21hyd" data-hash="335" data-power="5.36" data-capex="9600">Bitmain Antminer S21 Hyd 335T</option>
+        <option value="s19pro" data-hash="110" data-power="3.25" data-capex="1600">Bitmain Antminer S19 Pro</option>
+        <option value="s19" data-hash="95" data-power="3.25" data-capex="1100">Bitmain Antminer S19</option>
+      </select>
+
+      <label>Choose Currency</label>
+      <select id="currency">
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+      </select>
+
+      <label>USD → EUR FX Rate (for display)</label>
+      <div class="price-row">
+        <input type="number" id="fxRate" value="0.92" step="0.0001" min="0" title="Multiply USD amounts by this rate when displaying EUR">
+        <button class="btn refresh-btn" id="refreshFx" title="Refresh USD→EUR FX rate">🔄</button>
+      </div>
+      <div class="note">If refresh fails (CORS on file://), type the rate manually. Calculations run in USD internally; EUR is a display conversion.</div>
+
+      <label>Miners</label>
+      <div class="counter">
+        <button class="btn" id="minerMinus">-</button>
+        <input type="number" id="minerCount" value="138" min="1" step="1">
+        <button class="btn" id="minerPlus">+</button>
+      </div>
+      <p class="capex"><span id="currencySymbol">$</span><span id="totalCapex">0</span> (Hardware Capex)</p>
+
+      <label>Hold Period (months)</label>
+      <div class="slider-wrap">
+        <input type="range" id="holdMonthsRange" min="1" max="120" step="1" value="60" data-bind="holdMonths">
+        <input type="number" id="holdMonths" min="1" max="120" step="1" value="60">
+      </div>
+
+      <label>Scenario</label>
+      <div class="scenarios">
+        <button class="btn scenario-btn" data-val="bear">Bear</button>
+        <button class="btn scenario-btn active" data-val="base">Base</button>
+        <button class="btn scenario-btn" data-val="bull">Bull</button>
+      </div>
+
+
+      <label>Current Bitcoin Price (Month 1 only)</label>
+      <div class="price-row">
+        <input type="text" id="currentBtcPrice" readonly>
+        <button class="btn refresh-btn" id="refreshPrice" title="Refresh BTC spot price">🔄</button>
+      </div>
+      <div class="note">
+        Uses Coinbase “spot price” endpoint when available (may fail if your browser blocks CORS on file:// pages). If it fails, type a price below. 
+      </div>
+
+      <label>Manual BTC Price Override (USD)</label>
+      <input type="number" id="btcOverride" value="" placeholder="(optional) e.g. 105000" step="100" min="0">
+
+      <div class="divider"></div>
+
+      <h3 style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">Advanced Assumptions (sliders)<button id="toggleAdvanced" class="btn small ghost" style="margin-left:8px;">Show</button></h3><div id="advancedAssumptions" style="display:none;">
+
+      <label title="Long-term annual drift for the BTC cycle model (trend component).">BTC Price Drift (annual, %)</label>
+      <div class="slider-wrap">
+        <input type="range" id="priceDriftRange" min="-20" max="60" step="1" value="20" data-bind="priceDrift">
+        <input type="number" id="priceDrift" value="20" step="1" min="-90" max="200">
+      </div>
+
+      <label title="Cycle swing size around the drift trend. Higher amplitude = deeper drawdowns and higher peaks.">BTC Cycle Amplitude (+/- %)</label>
+      <div class="slider-wrap">
+        <input type="range" id="priceCycleAmpRange" min="0" max="150" step="1" value="60" data-bind="priceCycleAmp">
+        <input type="number" id="priceCycleAmp" value="60" step="1" min="0" max="200">
+      </div>
+
+      <label title="Approximate length of a full BTC price cycle in months.">BTC Cycle Length (months)</label>
+      <div class="slider-wrap">
+        <input type="range" id="priceCycleMonthsRange" min="24" max="72" step="1" value="48" data-bind="priceCycleMonths">
+        <input type="number" id="priceCycleMonths" value="48" step="1" min="12" max="96">
+      </div>
+
+      <label title="Aligns the cycle phase to the most recent halving date.">Halving Anchor Date</label>
+      <input type="date" id="halvingAnchor" value="2024-04-20">
+      <div class="note">Used to align the price cycle phase to the most recent halving.</div>
+
+
+      <label>Unit Miner Cost (Capex per miner)</label>
+      <div class="slider-wrap">
+        <input type="range" id="unitCapexRange" min="200" max="12000" step="50" value="9600" data-bind="unitCapex">
+        <input type="number" id="unitCapex" value="9600" step="50" min="0">
+      </div>
+
+      <label>Power Cost (USD/kWh)</label>
+      <div class="slider-wrap">
+        <input type="range" id="powerCostRange" min="0.00" max="0.20" step="0.001" value="0.05" data-bind="powerCost">
+        <input type="number" id="powerCost" value="0.05" step="0.001" min="0">
+      </div>
+
+      <label>Hashrate per Miner (TH/s)</label>
+      <div class="slider-wrap">
+        <input type="range" id="hashrateRange" min="50" max="600" step="1" value="335" data-bind="hashratePerMiner">
+        <input type="number" id="hashratePerMiner" value="335" step="1" min="1">
+      </div>
+
+      <label>Power per Miner (kW)</label>
+      <div class="slider-wrap">
+        <input type="range" id="powerPerMinerRange" min="1.0" max="10.0" step="0.01" value="5.36" data-bind="powerPerMiner">
+        <input type="number" id="powerPerMiner" value="5.36" step="0.01" min="0">
+      </div>
+
+      <label>Network Hashrate (EH/s)</label>
+      <div class="slider-wrap">
+        <input type="range" id="networkHashRange" min="300" max="2000" step="1" value="1057" data-bind="networkHashrateEH">
+        <input type="number" id="networkHashrateEH" value="1057" step="1" min="1" title="Current network hashrate in EH/s">
+      </div>
+      <div class="row" style="gap:8px; align-items:center; margin-top:6px">
+        <button class="btn small" id="refreshHashrate" title="Refresh network hashrate from Blockchain.com">Fetch Network Hash</button>
+        <div class="muted" style="font-size:12px">Uses Blockchain.com hash-rate data.</div>
+      </div>
+      <div class="muted" id="hashrateStatus" style="font-size:12px; margin-top:6px"></div>
+
+      <label>Uptime (%)</label>
+      <div class="slider-wrap">
+        <input type="range" id="uptimeRange" min="80" max="100" step="0.1" value="97" data-bind="uptime">
+        <input type="number" id="uptime" value="97" step="0.1" min="0" max="100">
+      </div>
+
+      <label>Pool Fee (%)</label>
+      <div class="slider-wrap">
+        <input type="range" id="poolFeeRange" min="0" max="5" step="0.1" value="1.5" data-bind="poolFee">
+        <input type="number" id="poolFee" value="1.5" step="0.1" min="0">
+      </div>
+
+      <label>Hosting Fee (% of revenue)</label>
+      <div class="slider-wrap">
+        <input type="range" id="hostingFeeRange" min="0" max="10" step="0.1" value="1" data-bind="hostingFee">
+        <input type="number" id="hostingFee" value="1" step="0.1" min="0">
+      </div>
+
+      <label>Management Fee (% of revenue)</label>
+      <div class="slider-wrap">
+        <input type="range" id="managementFeeRange" min="0" max="10" step="0.1" value="0.5" data-bind="managementFee">
+        <input type="number" id="managementFee" value="0.5" step="0.1" min="0">
+      </div>
+
+      <label>Insurance Fee (% of revenue)</label>
+      <div class="slider-wrap">
+        <input type="range" id="insuranceFeeRange" min="0" max="10" step="0.1" value="0.5" data-bind="insuranceFee">
+        <input type="number" id="insuranceFee" value="0.5" step="0.1" min="0">
+      </div>
+
+      <label>Repair Reserve (% of capex / yr)</label>
+      <div class="slider-wrap">
+        <input type="range" id="repairRange" min="0" max="5" step="0.1" value="2" data-bind="repairReserve">
+        <input type="number" id="repairReserve" value="2" step="0.1" min="0">
+      </div>
+      <label>ASIC Degradation (%/yr)</label>
+      <div class="slider-wrap">
+        <input type="range" id="degradeRange" min="0" max="30" step="0.1" value="5" data-bind="degradation">
+        <input type="number" id="degradation" value="5" step="0.1" min="0">
+      </div>
+
+      <label>Difficulty / Network Growth (%/yr)</label>
+      <div class="slider-wrap">
+        <input type="range" id="diffRange" min="-10" max="50" step="0.5" value="15" data-bind="difficultyGrowth">
+        <input type="number" id="difficultyGrowth" value="15" step="0.5">
+      </div>
+
+      <label>Resale Value (% of capex at end)</label>
+      <div class="slider-wrap">
+        <input type="range" id="resaleRange" min="0" max="100" step="1" value="0" data-bind="resaleValue">
+        <input type="number" id="resaleValue" value="0" step="1" min="0" max="100">
+      </div>
+
+      <label>Reinvest Net BTC to Cover OPEX</label>
+      <div class="row" style="margin-top:8px">
+        <input type="checkbox" id="reinvestBtc" style="transform:scale(1.15); width:auto; margin:0 8px 0 0">
+        <div class="muted" style="font-size:12px">
+          If checked, mined BTC is sold as needed to pay OPEX (reducing ending BTC).
+        </div>
+      </div>
+
+      </div>
+<div class="divider"></div>
+
+      <h3>Assumptions</h3>
+      <button id="toggleAssumptions" class="btn small ghost">Show Assumptions</button>
+      <div id="assumptionsPanel" style="display:none; margin-top:10px">
+        <p class="muted" style="margin:6px 0"><strong>Current BTC Price:</strong> <span id="assumptionsBtcPrice">—</span></p>
+        <p class="muted" style="margin:6px 0"><strong>Block Reward:</strong> 3.125 BTC (halving in month 28)</p>
+        <p class="muted" style="margin:6px 0"><strong>BTC Price Model:</strong> Cycle-based (drift + amplitude)</p>
+        <ul class="muted" style="margin:6px 0 0 18px">
+          <li>Bear: 5% drift, 45% amplitude</li>
+          <li>Base: 20% drift, 60% amplitude</li>
+          <li>Bull: 35% drift, 80% amplitude</li>
+        </ul>
+        <p class="muted" style="margin:8px 0"><strong>Last updated:</strong> <span id="timestamp"></span></p>
+      </div>
+
+      <div class="sticky-actions">
+        <div class="row">
+          <button class="btn primary" id="shareBtn">Share Scenario</button>
+          <button class="btn" id="exportBtn">Download Data (CSV)</button>
+          <button class="btn" id="exportHtmlBtn">Download 1‑Page Report</button>
+        </div>
+        <div class="note">
+          Tip: If “Share Scenario” link is long, it’s because it includes all assumptions as URL params.
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="tabs">
+        <button class="btn tab-btn active" data-tab="executive">Executive View</button>
+        <button class="btn tab-btn" data-tab="overview">Overview</button>
+        <button class="btn tab-btn" data-tab="cashflow">Cash Flow</button>
+        <button class="btn tab-btn" data-tab="sensitivity">Sensitivity</button>
+        <button class="btn tab-btn" data-tab="montecarlo">Monte Carlo</button>
+              </div>
+      <div class="row" style="align-items:center; justify-content:space-between; margin:10px 0 14px">
+        <div class="muted" style="font-size:12px">As of <span id="timestamp2">—</span></div>
+      </div>
+
+      <section id="executive" class="tab-content active">
+        <h2>Executive View</h2>
+        <div class="note" style="margin:8px 0 12px">
+          A high-level snapshot for investors. Deeper details are available in the other tabs and the assumptions panel.
+        </div>
+
+        <div class="tiles">
+          <div class="tile" title="Internal Rate of Return using terminal BTC value only (excludes ASIC resale), pre-tax">
+            <h3>IRR (BTC only)</h3>
+            <p><span id="execIrr">—</span>%</p>
+</div>
+          <div class="tile" title="Multiple on invested capital using terminal BTC value only (excludes ASIC resale)">
+            <h3>MOIC (BTC only)</h3>
+            <p><span id="execMoic">—</span>x</p>
+</div>
+          <div class="tile" title="First month where cumulative net value turns positive (BTC held × price − capex − cash OPEX)">
+            <h3>Payback (months)</h3>
+            <p><span id="execPayback">—</span></p>
+          </div>
+        </div>
+
+        <div class="tiles">
+          <div class="tile" title="Initial hardware spend (miners × unit cost)">
+            <h3>Initial Capex</h3>
+            <p><span id="execSym1">$</span><span id="execCapex">0</span></p>
+          </div>
+          <div class="tile" title="BTC produced in the first 12 months (net of pool fee and uptime)">
+            <h3>BTC Produced (Year 1)</h3>
+            <p><span id="execBtcYr1">0</span></p>
+          </div>
+          <div class="tile" title="BTC held at the end (depends on reinvest toggle)">
+            <h3>Ending BTC</h3>
+            <p><span id="execEndingBtc">0</span></p>
+          </div>
+        </div>
+
+        <h3 class="graph-title">Cumulative Net Value (BTC held × price − capex − cash OPEX)</h3>
+        <div class="chart-box"><canvas id="execNetValueChart"></canvas></div>
+
+        <div class="divider"></div>
+
+        <div class="tile" style="min-height:auto">
+          <h3>Key Assumptions (summary)</h3>
+          <div class="muted" id="execAssumpSummary" style="line-height:1.5">
+            —
+          </div>
+          <div class="note" style="margin-top:10px">
+            Tip: Open <strong>Overview</strong> for full outputs, <strong>Cash Flow</strong> for detailed monthly bridge, and <strong>Sensitivity</strong> for stress tests.
+          </div>
+        </div>
+      </section>
+
+
+      <section id="overview" class="tab-content">
+        <h2>Outputs</h2>
+
+        <div class="tiles">
+          <div class="tile" title="Sum of (BTC mined each month × monthly price)">
+            <h3>Cumulative Revenue</h3>
+            <p><span id="currencySymbol1">$</span><span id="revenue">0</span></p>
+          </div>
+          <div class="tile" title="Capex + all OPEX components over hold period">
+            <h3>Cumulative Costs</h3>
+            <p><span id="currencySymbol2">$</span><span id="costs">0</span></p>
+          </div>
+          <div class="tile" title="Revenue − OPEX − Capex + resale value">
+            <h3>Cumulative Net Cash Flow</h3>
+            <p><span id="currencySymbol3">$</span><span id="netCash">0</span></p>
+          </div>
+        </div>
+
+        <div class="tiles">
+          <div class="tile" title="Internal Rate of Return on net value (terminal BTC + resale included), pre-tax">
+            <h3>IRR (pre-tax)</h3>
+            <p><span id="irr">0</span>%</p>
+          </div>
+          <div class="tile" title="Multiple on invested capital, using ending value of held BTC + resale value vs total cash invested">
+            <h3>MOIC</h3>
+            <p><span id="moic">0</span>x</p>
+          </div>
+          <div class="tile" title="BTC held at the end (depends on reinvest toggle)">
+            <h3>Ending BTC</h3>
+            <p><span id="btcMined">0</span></p>
+          </div>
+        </div>
+
+        <h3 class="graph-title">Bitcoin Mining Profitability (Revenue, Profit, Electricity, Cumulative)</h3>
+        <div class="chart-box"><canvas id="profitabilityChart"></canvas></div>
+
+        <div class="divider"></div>
+
+        <h3>Yearly BTC Value (held BTC × price)</h3>
+        <div id="yearly" class="yearly-tiles"></div>
+
+        <div class="divider"></div>
+
+        <h3>Buying DCA vs Mining BTC</h3>
+        <div class="comparison" title="DCA: Same total cash invested (capex + any out-of-pocket OPEX) divided monthly into BTC at monthly prices. Mining: Ending BTC from mining after OPEX choice.">
+          <div class="tile">
+            <h4>Buying (DCA)</h4>
+            <p>BTC: <span id="dcaBtc">0</span></p>
+            <div class="muted"><span id="currencySymbol5">$</span><span id="dcaValue">0</span></div>
+          </div>
+          <div class="tile">
+            <h4>Mining</h4>
+            <p>BTC: <span id="miningBtc">0</span></p>
+            <div class="muted"><span id="currencySymbol6">$</span><span id="miningValue">0</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cashflow" class="tab-content">
+        <h2>Detailed Cash Flow Bridge</h2>
+        <div class="note" style="margin:8px 0 12px">
+          Note: “Revenue (USD)” is net BTC × monthly price. If “Reinvest BTC” is checked, some BTC may be sold to cover OPEX (reducing BTC held). The last column shows cumulative net value: -capex - cash OPEX + (BTC held × price).
+        </div>
+        <div class="row" style="align-items:center; justify-content:space-between; margin:10px 0 8px">
+          <div class="muted" id="cashflowViewLabel">View: Monthly</div>
+          <button class="btn small" id="toggleCashflowView" title="Toggle monthly vs annual summary">Switch to Annual Summary</button>
+        </div>
+        <div class="table-scroll" aria-label="Scrollable cash flow table"><table id="cashflowTable">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Gross BTC</th>
+              <th>- Pool Fee</th>
+                            <th>Net BTC</th>
+              <th>BTC Price</th>
+              <th>Revenue (USD)</th>
+              <th>- Power</th>
+              <th>- Hosting</th>
+              <th>- Mgmt</th>
+              <th>- Insurance</th>
+              <th>- Repairs</th>
+              <th>Net Cash (USD)</th>
+              <th>Cum. Net Value</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+
+      <section id="sensitivity" class="tab-content">
+        <h2>Sensitivity Analysis (MOIC)</h2>
+        <table id="sensitivityTable">
+          <thead>
+            <tr>
+              <th>Power Cost</th>
+              <th>BTC Price -20%</th>
+              <th>Base</th>
+              <th>BTC Price +20%</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p class="note">Rows vary power cost ±10%. Columns vary BTC price ±20% around the selected scenario.</p>
+      </section>
+
+      <section id="montecarlo" class="tab-content">
+        <h2>Monte Carlo Simulation (1,000 runs)</h2>
+        <p class="muted">Cycle drift/amplitude and difficulty growth are randomized around the selected scenario; this is a lightweight “sanity check,” not a trading model.</p>
+        <div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+          <div class="tile">
+            <h3>Prob. MOIC &gt; 1.5x</h3>
+            <p><span id="probMoic">—</span>%</p>
+          </div>
+          <div class="tile">
+            <h3>Prob. break-even by month 18</h3>
+            <p><span id="probBreakeven">—</span>%</p>
+          </div>
+          <div class="tile">
+            <h3>Avg. ending BTC</h3>
+            <p><span id="avgEndingBtc">—</span></p>
+          </div>
+        </div>
+        <button class="btn primary" id="rerunMC" style="margin-top:10px">Re-run Monte Carlo</button>
+      </section>
+</main>
+  </div>
+
+<script>
+const _structuredClone = (obj) => {
+  try { return structuredClone(obj); }
+  catch { return JSON.parse(JSON.stringify(obj)); }
+};
+
+/**
+ * Single-file calculator that makes ALL controls dynamic:
+ * - Every slider is bound to a number input via data-bind
+ * - One recalc() function updates: tiles, chart, tables, sensitivity, and MC
+ * - Share Scenario writes current state into URL query params
+ * - CSV export downloads the cashflow table
+ */
+
+const DEFAULTS = {
+  project: "UAE: Operation SandHash 2",
+  minerModel: "s21hyd",
+  currency: "USD",
+  fxRate: 0.92,
+  minerCount: 138,
+  holdMonths: 60,
+  scenario: "base",
+  investorMode: false,
+  advancedUnlocked: true,
+  cashflowView: "monthly",
+  btcOverride: "",
+  priceDrift: 20,
+  priceCycleAmp: 60,
+  priceCycleMonths: 48,
+  halvingAnchor: "2024-04-20",
+  unitCapex: 9600,
+  powerCost: 0.05,
+  hashratePerMiner: 335,
+  powerPerMiner: 5.36,
+  networkHashrateEH: 1057,
+  uptime: 97,
+  poolFee: 1.5,
+  hostingFee: 1,
+  managementFee: 0.5,
+  insuranceFee: 0.5,
+  repairReserve: 2,
+  degradation: 5,
+  difficultyGrowth: 20,
+  resaleValue: 0,
+  reinvestBtc: false,
+};
+
+const SCENARIOS = {
+  bear: { drift: 5, amp: 45 },
+  base: { drift: 20, amp: 60 },
+  bull: { drift: 35, amp: 80 },
+};
+
+const UI = {
+  minerModel: document.getElementById("minerModel"),
+  currency: document.getElementById("currency"),
+  investorMode: document.getElementById("investorMode"),
+  fxRate: document.getElementById("fxRate"),
+  refreshFx: document.getElementById("refreshFx"),
+  refreshHashrate: document.getElementById("refreshHashrate"),
+  hashrateStatus: document.getElementById("hashrateStatus"),
+  minerCount: document.getElementById("minerCount"),
+  minerMinus: document.getElementById("minerMinus"),
+  minerPlus: document.getElementById("minerPlus"),
+  holdMonths: document.getElementById("holdMonths"),
+  holdMonthsRange: document.getElementById("holdMonthsRange"),
+  currentBtcPrice: document.getElementById("currentBtcPrice"),
+  btcOverride: document.getElementById("btcOverride"),
+  priceDrift: document.getElementById("priceDrift"),
+  priceCycleAmp: document.getElementById("priceCycleAmp"),
+  priceCycleMonths: document.getElementById("priceCycleMonths"),
+  halvingAnchor: document.getElementById("halvingAnchor"),
+  refreshPrice: document.getElementById("refreshPrice"),
+  toggleAssumptions: document.getElementById("toggleAssumptions"),
+  assumptionsPanel: document.getElementById("assumptionsPanel"),
+  assumptionsBtcPrice: document.getElementById("assumptionsBtcPrice"),
+  timestamp: document.getElementById("timestamp"),
+  resetBtn: document.getElementById("resetBtn"),
+
+  // Advanced number inputs (paired with sliders via data-bind)
+  unitCapex: document.getElementById("unitCapex"),
+  powerCost: document.getElementById("powerCost"),
+  hashratePerMiner: document.getElementById("hashratePerMiner"),
+  powerPerMiner: document.getElementById("powerPerMiner"),
+  networkHashrateEH: document.getElementById("networkHashrateEH"),
+  uptime: document.getElementById("uptime"),
+  poolFee: document.getElementById("poolFee"),
+  hostingFee: document.getElementById("hostingFee"),
+  managementFee: document.getElementById("managementFee"),
+  insuranceFee: document.getElementById("insuranceFee"),
+  repairReserve: document.getElementById("repairReserve"),
+  degradation: document.getElementById("degradation"),
+  difficultyGrowth: document.getElementById("difficultyGrowth"),
+  resaleValue: document.getElementById("resaleValue"),
+  reinvestBtc: document.getElementById("reinvestBtc"),
+
+  // Outputs
+  currencySymbol: document.getElementById("currencySymbol"),
+  totalCapex: document.getElementById("totalCapex"),
+  revenue: document.getElementById("revenue"),
+  costs: document.getElementById("costs"),
+  netCash: document.getElementById("netCash"),
+  irr: document.getElementById("irr"),
+  moic: document.getElementById("moic"),
+  btcMined: document.getElementById("btcMined"),
+  yearly: document.getElementById("yearly"),
+  dcaBtc: document.getElementById("dcaBtc"),
+  dcaValue: document.getElementById("dcaValue"),
+  miningBtc: document.getElementById("miningBtc"),
+  miningValue: document.getElementById("miningValue"),
+  cashflowTbody: document.querySelector("#cashflowTable tbody"),
+  sensitivityTbody: document.querySelector("#sensitivityTable tbody"),
+  probMoic: document.getElementById("probMoic"),
+  probBreakeven: document.getElementById("probBreakeven"),
+  avgEndingBtc: document.getElementById("avgEndingBtc"),
+  rerunMC: document.getElementById("rerunMC"),
+  exportBtn: document.getElementById("exportBtn"),
+  shareBtn: document.getElementById("shareBtn"),
+};
+
+let state = _structuredClone(DEFAULTS);
+
+
+function setAdvancedEnabled(enabled){
+  const panel = document.getElementById("advancedAssumptions");
+  if(!panel) return;
+  panel.querySelectorAll("input,select,textarea,button").forEach(el=>{
+    // never disable the show/hide button
+    if(el.id === "toggleAdvanced") return;
+    el.disabled = !enabled;
+  });
+  panel.classList.toggle("is-locked", !enabled);
+}
+
+function applyInvestorMode(){
+  const on = !!state.investorMode;
+  document.body.classList.toggle("investor-mode", on);
+
+  // Hide "deep" tabs in Investor Mode
+  document.querySelectorAll('.tab-btn[data-tab="sensitivity"], .tab-btn[data-tab="montecarlo"]').forEach(btn=>{
+    btn.style.display = on ? "none" : "";
+  });
+
+  // If user is currently on a hidden tab, bounce them back to Executive View
+  const active = document.querySelector(".tab-btn.active");
+  const activeTab = active?.dataset?.tab;
+  if(on && (activeTab === "sensitivity" || activeTab === "montecarlo")){
+    setTab("executive");
+  }
+
+  // Default Cash Flow view (only if unset)
+  if(!state.cashflowView) state.cashflowView = on ? "annual" : "monthly";
+
+  // Advanced Assumptions: locked by default in Investor Mode (unlockable)
+  if(!on) state.advancedUnlocked = true;
+  const panel = document.getElementById("advancedAssumptions");
+  const btn = document.getElementById("toggleAdvanced");
+  if(on && !state.advancedUnlocked){
+    if(panel) panel.style.display = "none";
+    if(btn) btn.textContent = "Unlock Advanced";
+    setAdvancedEnabled(false);
+  }else{
+    setAdvancedEnabled(true);
+    // keep whatever the panel is currently doing, but normalize button label
+    if(btn && panel){
+      btn.textContent = (panel.style.display === "none") ? "Show" : "Hide";
+    }
+  }
+}
+
+let btcSpotUSD = null;
+
+// ---------- Helpers ----------
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const round = (x, d=2) => Number.isFinite(x) ? Number(x.toFixed(d)) : 0;
+
+function fmtMoney(x, currency="USD"){
+  const n = Number.isFinite(x) ? x : 0;
+  return Math.round(n).toLocaleString(undefined);
+}
+function fmtNum(x, d=3){
+  return (Number.isFinite(x) ? x : 0).toFixed(d);
+}
+function symbolFor(cur){ return cur === "EUR" ? "€" : "$"; }
+
+function fxRate(){
+  // Internal model is USD. If user selects EUR, display = USD * fxRate.
+  const r = Number(state.fxRate);
+  return (Number.isFinite(r) && r > 0) ? r : 0.85;
+}
+function toDisplay(usd){
+  const v = Number.isFinite(usd) ? usd : 0;
+  return state.currency === "EUR" ? v * fxRate() : v;
+}
+
+// IRR (monthly) using binary search
+function irrMonthly(cashflows){
+  // need at least one negative and one positive
+  let hasNeg=false, hasPos=false;
+  for(const c of cashflows){ if(c<0) hasNeg=true; if(c>0) hasPos=true; }
+
+  if(!hasNeg || !hasPos) return null;
+
+  const npv = (rate) => cashflows.reduce((acc, c, i) => acc + c / Math.pow(1+rate, i), 0);
+
+  let lo = -0.99, hi = 2.0; // -99% to +200% per month
+  for(let iter=0; iter<80; iter++){
+    const mid = (lo+hi)/2;
+    const v = npv(mid);
+    if (v > 0) lo = mid; else hi = mid;
+  }
+  return (lo+hi)/2;
+}
+
+function debounce(fn, ms=50){
+  let t=null;
+  return (...args) => { clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
+}
+
+// ---------- Visible error hook ----------
+(function(){
+  const banner = document.getElementById("errorBanner");
+  const txt = document.getElementById("errorText");
+  const close = document.getElementById("errorClose");
+  if(close) close.addEventListener("click", ()=>{ if(banner) banner.style.display="none"; });
+  function show(msg){
+    if(!banner || !txt) return;
+    txt.textContent = String(msg || "Unknown error");
+    banner.style.display="block";
+  }
+  window.addEventListener("error", (e)=>{
+    show((e?.message || "Error") + (e?.filename ? `\n${e.filename}:${e.lineno||0}:${e.colno||0}` : ""));
+  });
+  window.addEventListener("unhandledrejection", (e)=>{
+    show("Unhandled promise rejection\n" + (e?.reason?.message || e?.reason || ""));
+  });
+})();
+
+
+// Parse and apply query params for shareable scenarios
+function loadFromQuery(){
+  const qs = new URLSearchParams(location.search);
+  if(!qs || [...qs.keys()].length === 0) return;
+  for(const [k,v] of qs.entries()){
+    if(!(k in DEFAULTS)) continue;
+    if(typeof DEFAULTS[k] === "boolean") state[k] = (v === "1" || v === "true");
+    else if(typeof DEFAULTS[k] === "number") state[k] = Number(v);
+    else state[k] = v;
+  }
+}
+
+// Put state into URL (Share Scenario)
+async function shareScenario(){
+  const qs = new URLSearchParams();
+  for(const k of Object.keys(DEFAULTS)){
+    const v = state[k];
+    if(typeof v === "boolean") qs.set(k, v ? "1":"0");
+    else qs.set(k, String(v));
+  }
+  const base = location.href.split("?")[0];
+  const url = `${base}?${qs.toString()}`;
+  try{
+    await navigator.clipboard.writeText(url);
+    UI.shareBtn.textContent = "Copied.";
+    setTimeout(()=>UI.shareBtn.textContent="Share Scenario", 1200);
+  }catch{
+    prompt("Copy this link:", url);
+  }
+}
+
+// CSV export
+function exportCSV(rows){
+  const header = Object.keys(rows[0] || {});
+  const csv = [header.join(",")].concat(
+    rows.map(r => header.map(h => `"${String(r[h] ?? "").replaceAll('"','""')}"`).join(","))
+  ).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "pantheon_mining_cashflow.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function buildOnePagerHtml(){
+  const out = model();
+  const sym = symbolFor(state.currency);
+  const ts = new Date().toLocaleString();
+
+  // Try to embed the executive net value chart as an image
+  let chartImg = "";
+  const c = document.getElementById("execNetValueChart");
+  try{
+    if(c && c.toDataURL){
+      chartImg = c.toDataURL("image/png");
+    }
+  }catch(e){ /* ignore */ }
+
+  const irrStr = out.irrANoResale === null ? "-" : `${fmtNum(out.irrANoResale*100,1)}%`;
+  const irrResaleStr = out.irrA === null ? "-" : `${fmtNum(out.irrA*100,1)}%`;
+  const moicStr = `${fmtNum(out.moicNoResale,2)}x`;
+  const moicResaleStr = `${fmtNum(out.moic,2)}x`;
+
+  return `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Pantheon Mining - Investment Snapshot</title>
+<style>
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:28px; color:#0b1220}
+  .top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}
+  .brand{font-weight:800; font-size:18px; letter-spacing:.2px}
+  .muted{color:#526178; font-size:12px}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px}
+  .card{border:1px solid rgba(15,23,42,.14); border-radius:14px; padding:12px 14px}
+  .k{font-size:12px; color:#526178; margin-bottom:6px}
+  .v{font-size:20px; font-weight:800}
+  .sub{margin-top:6px; font-size:12px; color:#526178}
+  h2{margin:18px 0 10px; font-size:14px; letter-spacing:.2px}
+  table{width:100%; border-collapse:collapse; font-size:12px}
+  th,td{padding:8px 8px; border-bottom:1px solid rgba(15,23,42,.10); text-align:right}
+  th:first-child, td:first-child{text-align:left}
+  .hr{height:1px; background:rgba(15,23,42,.12); margin:16px 0}
+  img{max-width:100%; border-radius:14px; border:1px solid rgba(15,23,42,.12)}
+  @media print{body{margin:16px}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <div class="brand">Pantheon Mining - Investment Snapshot</div>
+      <div class="muted">As of ${ts} - Scenario: ${state.scenario.toUpperCase()} - Hold: ${state.holdMonths} months - Investor metrics exclude resale by default</div>
+    </div>
+    <div class="muted" style="text-align:right">
+      <div>${state.project}</div>
+      <div>${state.minerCount.toLocaleString()} - ${state.minerModel.toUpperCase()}</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="k">Total Capex</div>
+      <div class="v">${sym}${fmtMoney(toDisplay(out.capex), state.currency)}</div>
+      <div class="sub">Miners - unit cost</div>
+    </div>
+    <div class="card">
+      <div class="k">IRR (BTC only)</div>
+      <div class="v">${irrStr}</div>
+    </div>
+    <div class="card">
+      <div class="k">MOIC (BTC only)</div>
+      <div class="v">${moicStr}</div>
+    </div>
+    <div class="card">
+      <div class="k">Payback (months)</div>
+      <div class="v">${document.getElementById("execPayback")?.textContent || "-"}</div>
+      <div class="sub">Cumulative net value turns positive</div>
+    </div>
+    <div class="card">
+      <div class="k">Ending BTC</div>
+      <div class="v">${fmtNum(out.endingBTC,4)}</div>
+      <div class="sub">Depends on reinvest toggle</div>
+    </div>
+    <div class="card">
+      <div class="k">Ending Value</div>
+      <div class="v">${sym}${fmtMoney(toDisplay(out.endingValueUSD), state.currency)}</div>
+      <div class="sub">BTC held - exit price</div>
+    </div>
+  </div>
+
+  <h2>Key Drivers</h2>
+  <table>
+    <tbody>
+      <tr><td>BTC Spot (USD)</td><td>${sym}${Math.round(toDisplay(getBtcPriceUSD())).toLocaleString()}</td></tr>
+      <tr><td>Power Cost</td><td>${sym}${fmtMoney(toDisplay(state.powerCost), state.currency)} / kWh</td></tr>
+      <tr><td>Uptime</td><td>${fmtNum(state.uptime,1)}%</td></tr>
+      <tr><td>All-in Fees (pool+hosting+mgmt+ins+repairs)</td><td>${fmtNum(state.poolFee+state.hostingFee+state.managementFee+state.insuranceFee+state.repairReserve,2)}%</td></tr>
+      <tr><td>Difficulty Growth (annualized)</td><td>${fmtNum(state.difficultyGrowth,1)}%</td></tr>
+      <tr><td>Price Drift (annual)</td><td>${fmtNum(state.priceDrift,1)}%</td></tr>
+      <tr><td>Cycle Amplitude</td><td>+/-${fmtNum(state.priceCycleAmp,0)}%</td></tr>
+    </tbody>
+  </table>
+
+  <div class="hr"></div>
+
+  <h2>Net Value Curve</h2>
+  ${chartImg ? `<img src="${chartImg}" alt="Net Value Chart">` : `<div class="muted">Chart unavailable in this browser context.</div>`}
+
+  <div class="hr"></div>
+
+  <h2>Risks (summary)</h2>
+  <div class="muted" style="line-height:1.5">
+    Bitcoin price volatility; network difficulty changes; downtime and hardware failure; hosting/power counterparty risk; regulatory and tax uncertainty.
+    This is a simplified, pre-tax model for illustrative purposes only.
+  </div>
+</body></html>`;
+}
+
+function exportOnePager(){
+  const html = buildOnePagerHtml();
+  const blob = new Blob([html], {type:"text/html"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "pantheon-investment-snapshot.html";
+  document.body.appendChild(a);
+  try{
+    a.click();
+  }catch{
+    window.open(url, "_blank");
+  }
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+function exportPdfOnePager(){
+  const html = buildOnePagerHtml();
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  iframe.onload = () => {
+    try{
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }finally{
+      setTimeout(()=>iframe.remove(), 1000);
+    }
+  };
+}
+
+// ---------- Core model ----------
+function getInputs(){
+  // pull from DOM
+  state.minerModel = UI.minerModel.value;
+  state.currency = UI.currency.value;
+  state.fxRate = Number(UI.fxRate.value);
+  state.minerCount = clamp(parseInt(UI.minerCount.value || 1, 10), 1, 1000000);
+  state.holdMonths = clamp(parseInt(UI.holdMonths.value || 1, 10), 1, 120);
+  state.btcOverride = UI.btcOverride.value;
+  state.priceDrift = Number(UI.priceDrift.value);
+  state.priceCycleAmp = Number(UI.priceCycleAmp.value);
+  state.priceCycleMonths = Number(UI.priceCycleMonths.value);
+  state.halvingAnchor = UI.halvingAnchor.value || DEFAULTS.halvingAnchor;
+
+  state.unitCapex = Number(UI.unitCapex.value);
+  state.powerCost = Number(UI.powerCost.value);
+  state.hashratePerMiner = Number(UI.hashratePerMiner.value);
+  state.powerPerMiner = Number(UI.powerPerMiner.value);
+  state.networkHashrateEH = Number(UI.networkHashrateEH.value);
+  state.uptime = Number(UI.uptime.value);
+  state.poolFee = Number(UI.poolFee.value);
+  state.hostingFee = Number(UI.hostingFee.value);
+  state.managementFee = Number(UI.managementFee.value);
+  state.insuranceFee = Number(UI.insuranceFee.value);
+  state.repairReserve = Number(UI.repairReserve.value);state.degradation = Number(UI.degradation.value);
+  state.difficultyGrowth = Number(UI.difficultyGrowth.value);
+  state.resaleValue = Number(UI.resaleValue.value);
+  state.reinvestBtc = UI.reinvestBtc.checked;
+
+  state.investorMode = UI.investorMode ? UI.investorMode.checked : !!state.investorMode;
+
+  // sanitize
+  for(const k of Object.keys(DEFAULTS)){
+    if(typeof DEFAULTS[k] === "number") state[k] = Number.isFinite(state[k]) ? state[k] : DEFAULTS[k];
+  }
+}
+
+function getBtcPriceUSD(){
+  // priority: manual override > fetched spot > fallback constant
+  const manual = Number(UI.btcOverride.value);
+  if(Number.isFinite(manual) && manual > 0) return manual;
+  if(Number.isFinite(btcSpotUSD) && btcSpotUSD > 0) return btcSpotUSD;
+  return 100000; // fallback so UI isn't empty
+}
+
+function monthsSinceHalving(anchor){
+  const anchorDate = new Date(anchor + "T00:00:00Z");
+  if(Number.isNaN(anchorDate.getTime())) return 0;
+  const now = new Date();
+  const months = (now.getUTCFullYear() - anchorDate.getUTCFullYear()) * 12 + (now.getUTCMonth() - anchorDate.getUTCMonth());
+  return Math.max(0, months);
+}
+
+function cycleFactor(monthIndex){
+  const cycleMonths = clamp(Number(state.priceCycleMonths) || 48, 12, 120);
+  const amp = clamp(Number(state.priceCycleAmp) || 0, 0, 200) / 100;
+  const t0 = monthsSinceHalving(state.halvingAnchor || DEFAULTS.halvingAnchor);
+  const t = t0 + monthIndex;
+  const phase = (2 * Math.PI * (t / cycleMonths)) - Math.PI / 2;
+  const raw = 1 + amp * Math.sin(phase);
+  return Math.max(0.2, raw);
+}
+
+function pricePathUSD(months){  const drift = clamp(Number(state.priceDrift) || 0, -90, 200) / 100;
+  const p0 = getBtcPriceUSD();
+  const prices = [];
+  const c0 = cycleFactor(0);
+  for(let i=0; i<months; i++){
+    const trend = Math.pow(1 + drift, i/12);
+    const c = cycleFactor(i);
+    const price = p0 * trend * (c / c0);
+    prices.push(Math.max(1000, price));
+  }
+  return prices;
+}
+
+function effectiveRunFrac(){
+  const uptime = clamp(state.uptime/100, 0, 1);
+  return uptime;
+}
+
+
+function monthlyHashrateTH(monthIndex){
+  // degradation applies to miner hashrate (simple linear-ish exponential)
+  const degradeMonthly = Math.pow(1 - clamp(state.degradation,0,99)/100, 1/12);
+  return state.hashratePerMiner * Math.pow(degradeMonthly, monthIndex);
+}
+
+function monthlyNetworkHashEH(monthIndex){  const g = Math.pow(1 + state.difficultyGrowth/100, 1/12);
+  return state.networkHashrateEH * Math.pow(g, monthIndex);
+}
+
+function blockRewardBTC(monthIndex){
+  // halving in month 28 => monthIndex 27 is month 28 in 1-based
+  return monthIndex >= 27 ? 1.5625 : 3.125;
+}
+
+function model(){
+  const months = state.holdMonths;
+  const daysPerMonth = 30.4375;
+  const blocksPerDay = 144;
+
+  const prices = pricePathUSD(months);
+
+  const capex = state.minerCount * state.unitCapex;
+  const resale = capex * (clamp(state.resaleValue,0,100)/100);
+
+  const runFrac = effectiveRunFrac();
+  const poolFrac = clamp(state.poolFee/100,0,1);
+  const hostFrac = clamp(state.hostingFee/100,0,1);
+  const mgmtFrac = clamp(state.managementFee/100,0,1);
+  const insFrac  = clamp(state.insuranceFee/100,0,1);
+  const repairFrac = clamp(state.repairReserve/100,0,1);
+
+  const rows = [];
+  let cumCash = 0;        // cumulative out-of-pocket OPEX (positive)
+  let btcHeld = 0;        // BTC held over time (after any sales for OPEX)
+  let endingBTC = 0;
+  let cashflows = [-capex]; // cash-only IRR inputs
+
+  for(let m=0; m<months; m++){
+    const minerHashTH = monthlyHashrateTH(m) * state.minerCount;
+    const netHashTH = monthlyNetworkHashEH(m) * 1_000_000; // EH -> TH
+
+    const share = netHashTH > 0 ? minerHashTH / netHashTH : 0;
+
+    const grossBTC = share * blocksPerDay * daysPerMonth * blockRewardBTC(m) * runFrac;
+
+    const poolBTC = grossBTC * poolFrac;
+    const netBTC = Math.max(0, grossBTC - poolBTC);
+
+    const price = prices[m];
+    const revenue = netBTC * price;
+
+    const powerUSD = state.minerCount * state.powerPerMiner * 24 * daysPerMonth * state.powerCost * runFrac;
+    const hostingUSD = revenue * hostFrac;
+    const mgmtUSD = revenue * mgmtFrac;
+    const insUSD = revenue * insFrac;
+    const repairsUSD = capex * repairFrac / 12;
+
+    const opex = powerUSD + hostingUSD + mgmtUSD + insUSD + repairsUSD;
+
+    // If reinvest: sell BTC to cover OPEX up to available netBTC
+    let btcSoldForOpex = 0;
+    let outOfPocket = 0;
+
+    if(state.reinvestBtc){
+      btcSoldForOpex = Math.min(netBTC, opex / price);
+      outOfPocket = Math.max(0, opex - btcSoldForOpex * price);
+      btcHeld += (netBTC - btcSoldForOpex);
+    }else{
+      outOfPocket = opex; // all opex paid in cash
+      btcHeld += netBTC;
+    }
+
+    // Cash-only monthly flow (negative = money out)
+    const netCash = -outOfPocket;
+    cashflows.push(netCash);
+
+    // Track cumulative cash paid (positive) and "net value" including marked-to-market BTC held
+    cumCash += outOfPocket;
+    const netValueUSD = (-capex - cumCash) + (btcHeld * price); // resale handled at the end
+
+    rows.push({
+      Month: m+1,
+      GrossBTC: grossBTC,
+      PoolFeeBTC: poolBTC,
+      NetBTC: netBTC,
+      BTCHeld: btcHeld,
+      BTCPrice: price,
+      RevenueUSD: revenue,
+      PowerUSD: powerUSD,
+      HostingUSD: hostingUSD,
+      MgmtUSD: mgmtUSD,
+      InsuranceUSD: insUSD,
+      RepairsUSD: repairsUSD,
+      NetCashUSD: netCash,
+      NetValueUSD: netValueUSD,
+      // Cash-only cumulative (still useful to see how much you've paid out of pocket)
+      CumulativeCashOutUSD: (-capex - cumCash),
+    });
+  }
+
+  // End state
+  endingBTC = btcHeld;
+  const endPrice = prices[prices.length-1];
+  const endingValueUSD = endingBTC * endPrice;
+
+  // Total invested cash = capex + sum(out-of-pocket) = -sum(cashflows)
+  const totalCashInvested = -cashflows.reduce((a,b)=>a+b,0);
+
+  const moic = totalCashInvested > 0 ? (endingValueUSD + resale) / totalCashInvested : 0;
+
+  // Conservative headline metrics (exclude ASIC resale / liquidation unless explicitly shown)
+  const moicNoResale = totalCashInvested > 0 ? (endingValueUSD) / totalCashInvested : 0;
+
+
+  // IRR (net): include terminal liquidation value of BTC held + resale at end of hold period.
+  // Even if BTC is held during the period, IRR is solved by realizing value at exit.
+  const terminalValue = endingValueUSD + resale;
+  const cashflowsNet = cashflows.slice();
+  cashflowsNet[cashflowsNet.length - 1] = cashflowsNet[cashflowsNet.length - 1] + terminalValue;
+
+  // IRR excluding resale (BTC value only)
+  const cashflowsNetNoResale = cashflows.slice();
+  cashflowsNetNoResale[cashflowsNetNoResale.length - 1] = cashflowsNetNoResale[cashflowsNetNoResale.length - 1] + endingValueUSD;
+
+  cashflowsNet[cashflowsNet.length - 1] = cashflowsNet[cashflowsNet.length - 1] + terminalValue;
+  const irrM = irrMonthly(cashflowsNet);
+  const irrA = irrM === null ? null : (Math.pow(1+irrM, 12) - 1);
+  const irrMNoResale = irrMonthly(cashflowsNetNoResale);
+  const irrANoResale = irrMNoResale === null ? null : (Math.pow(1+irrMNoResale, 12) - 1);
+
+  // For tiles: "revenue" is theoretical revenue from mined BTC (even if held)
+  const cumulativeRevenue = rows.reduce((a,r)=>a + r.RevenueUSD, 0);
+  const cumulativeOpex = rows.reduce((a,r)=>a + (r.PowerUSD+r.HostingUSD+r.MgmtUSD+r.InsuranceUSD+r.RepairsUSD), 0);
+  const cumulativeCosts = capex + cumulativeOpex;
+  const cumulativeNet = cumulativeRevenue - cumulativeCosts + resale;
+
+  return {
+    rows, prices,
+    capex, resale,
+    endingBTC, endingValueUSD,
+    totalCashInvested,
+    moic,
+    moicNoResale,
+    irrA,
+    irrANoResale,
+    cumulativeRevenue, cumulativeCosts, cumulativeNet,
+  };
+}
+
+// ---------- Rendering ----------
+let profitabilityChart = null;
+let execNetValueChart = null;
+
+function render(modelOut){
+  const sym = symbolFor(state.currency);
+  UI.currencySymbol.textContent = sym;
+  document.getElementById("currencySymbol1").textContent = sym;
+  document.getElementById("currencySymbol2").textContent = sym;
+  document.getElementById("currencySymbol3").textContent = sym;
+  document.getElementById("currencySymbol5").textContent = sym;
+  document.getElementById("currencySymbol6").textContent = sym;
+
+  UI.totalCapex.textContent = fmtMoney(toDisplay(modelOut.capex), state.currency);
+
+  UI.revenue.textContent = fmtMoney(toDisplay(modelOut.cumulativeRevenue), state.currency);
+  UI.costs.textContent = fmtMoney(toDisplay(modelOut.cumulativeCosts), state.currency);
+  UI.netCash.textContent = fmtMoney(toDisplay(modelOut.cumulativeNet), state.currency);
+
+  UI.btcMined.textContent = fmtNum(modelOut.endingBTC, 4);
+  UI.miningBtc.textContent = fmtNum(modelOut.endingBTC, 4);
+  UI.miningValue.textContent = fmtMoney(toDisplay(modelOut.endingValueUSD + modelOut.resale), state.currency);
+
+  // DCA: invest same total cash invested evenly each month at monthly prices
+  const months = state.holdMonths;
+  const investMonthly = modelOut.totalCashInvested / months;
+  let dcaBTC = 0;
+  for(let i=0; i<months; i++){
+    dcaBTC += investMonthly / modelOut.prices[i];
+  }
+  const dcaValue = dcaBTC * modelOut.prices[months-1];
+
+  UI.dcaBtc.textContent = fmtNum(dcaBTC, 4);
+  UI.dcaValue.textContent = fmtMoney(toDisplay(dcaValue), state.currency);
+
+  // IRR & MOIC
+  UI.moic.textContent = fmtNum(modelOut.moic, 2);
+  UI.irr.textContent = modelOut.irrA === null ? "—" : fmtNum(modelOut.irrA*100, 1);
+
+    
+  // --- Executive View KPIs ---
+  const execIrr = document.getElementById("execIrr");
+  const execMoic = document.getElementById("execMoic");
+  const execPayback = document.getElementById("execPayback");
+  const execCapex = document.getElementById("execCapex");
+  const execBtcYr1 = document.getElementById("execBtcYr1");
+  const execEndingBtc = document.getElementById("execEndingBtc");
+  const execAssumpSummary = document.getElementById("execAssumpSummary");
+  const execSym1 = document.getElementById("execSym1");
+
+  if(execSym1) execSym1.textContent = sym;
+
+  if(execIrr) execIrr.textContent = modelOut.irrANoResale === null ? "—" : fmtNum(modelOut.irrANoResale*100, 1);
+  if(execMoic) execMoic.textContent = fmtNum(modelOut.moicNoResale, 2);
+  if(execEndingBtc) execEndingBtc.textContent = fmtNum(modelOut.endingBTC, 4);
+  if(execCapex) execCapex.textContent = fmtMoney(toDisplay(modelOut.capex), state.currency);
+
+  // BTC produced Year 1 (net BTC)
+  if(execBtcYr1){
+    const n = Math.min(12, modelOut.rows.length);
+    const btcYr1 = modelOut.rows.slice(0, n).reduce((a,r)=>a + (Number(r.NetBTC)||0), 0);
+    execBtcYr1.textContent = fmtNum(btcYr1, 4);
+  }
+
+  // Payback: first month where net value >= 0
+  if(execPayback){
+    const idx = modelOut.rows.findIndex(r => Number.isFinite(r.NetValueUSD) && r.NetValueUSD >= 0);
+    execPayback.textContent = idx === -1 ? "—" : String(idx+1);
+  }
+
+  // Assumption summary (compact)
+  if(execAssumpSummary){
+    const basePriceDisp = Math.round(toDisplay(getBtcPriceUSD())).toLocaleString();
+    execAssumpSummary.innerHTML = `
+      <div><strong>Miners:</strong> ${state.minerCount.toLocaleString()} - <strong>Model:</strong> ${UI.minerModel.options[UI.minerModel.selectedIndex].text}</div>
+      <div><strong>Unit Cost:</strong> ${sym}${Math.round(toDisplay(state.unitCapex)).toLocaleString()} - <strong>Power:</strong> ${state.powerCost.toFixed(3)} USD/kWh</div>
+      <div><strong>Uptime:</strong> ${state.uptime.toFixed(1)}% - <strong>Pool Fee:</strong> ${state.poolFee.toFixed(1)}%</div>
+      <div><strong>Network Hash:</strong> ${Math.round(state.networkHashrateEH).toLocaleString()} EH/s - <strong>Difficulty Growth:</strong> ${state.difficultyGrowth.toFixed(1)}%/yr</div>
+      <div><strong>Start BTC Price:</strong> ${sym}${basePriceDisp} - <strong>Cycle Drift:</strong> ${state.priceDrift.toFixed(1)}%/yr</div>
+      <div><strong>Cycle Amplitude:</strong> +/-${state.priceCycleAmp.toFixed(0)}% - <strong>Hold Period:</strong> ${state.holdMonths} months</div>
+    `;
+  }
+
+  // Executive Chart: Cumulative Net Value
+  const execCanvas = document.getElementById("execNetValueChart");
+  if(execCanvas && window.Chart){
+    const labelsExec = modelOut.rows.map(r => r.Month);
+    const netValueSeries = modelOut.rows.map(r => toDisplay(r.NetValueUSD));
+    if(!execNetValueChart){
+      execNetValueChart = new Chart(execCanvas, {
+        type:"line",
+        data:{
+          labels: labelsExec,
+          datasets:[{ label:"Cumulative Net Value", data: netValueSeries, borderWidth:2, pointRadius:0, tension:.25 }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          interaction:{mode:"index", intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{
+              label:(ctx)=> `${sym}${Math.round(Number(ctx.raw||0)).toLocaleString()}`
+            }}
+          },
+          scales:{
+            x:{ticks:{color:"#9ca3af"}, grid:{color:"rgba(35,48,71,.35)"}},
+            y:{ticks:{color:"#9ca3af", callback:(v)=>`${sym}${Number(v).toLocaleString()}`}, grid:{color:"rgba(35,48,71,.35)"}}
+          }
+        }
+      });
+    }else{
+      execNetValueChart.data.labels = labelsExec;
+      execNetValueChart.data.datasets[0].data = netValueSeries;
+      execNetValueChart.update();
+    }
+  }
+// Chart: match screenshot-style profitability chart
+  // Bars: Revenue, Profit (operating), Electricity Cost
+  // Lines (right axis): Cash Flow (Cumulative, cash basis) and Profit/Loss (Cumulative, net value)
+  const labels = modelOut.rows.map(r => r.Month);
+
+  const revenue = modelOut.rows.map(r => toDisplay(r.RevenueUSD));
+  const electricity = modelOut.rows.map(r => toDisplay(r.PowerUSD));
+  const totalOpex = modelOut.rows.map(r => toDisplay(r.PowerUSD + r.HostingUSD + r.MgmtUSD + r.InsuranceUSD + r.RepairsUSD));
+  const profit = modelOut.rows.map((r, i) => (revenue[i] - totalOpex[i])); // operating profit before capex
+
+  // Net Cash (cumulative): -capex - out-of-pocket OPEX (cash only)
+  let runCash = -toDisplay(modelOut.capex);
+  const cashFlowCum = modelOut.rows.map(r => (runCash += toDisplay(r.NetCashUSD)));
+// Profit/Loss (cumulative): net value curve (already includes BTC mark-to-market)
+  const profitLossCum = modelOut.rows.map(r => toDisplay(r.NetValueUSD));
+
+  const ctx = document.getElementById("profitabilityChart");
+
+  if(typeof Chart !== "undefined"){
+  if(!profitabilityChart){
+    profitabilityChart = new Chart(ctx, {
+      data:{
+        labels,
+        datasets:[
+          { type:"bar", label:"Revenue", data: revenue, borderWidth:0, yAxisID:"y" },
+          { type:"bar", label:"Profit", data: profit, borderWidth:0, yAxisID:"y" },
+          { type:"bar", label:"Electricity Cost", data: electricity, borderWidth:0, yAxisID:"y" },
+
+          { type:"line", label:"Net Cash (Cumulative)", data: cashFlowCum, borderWidth:2, pointRadius:0, tension:.25, yAxisID:"y1" },
+          { type:"line", label:"Profit/Loss (Cumulative)", data: profitLossCum, borderWidth:2, pointRadius:0, tension:.25, yAxisID:"y1" },
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        interaction:{mode:"index", intersect:false},
+        plugins:{
+          legend:{display:true, labels:{color:"#e5e7eb"}},
+          tooltip:{callbacks:{
+            label: (ctx) => {
+              const v = Number(ctx.raw || 0);
+              const isBTC = false;
+              const prefix = (ctx.dataset.type === "line" || ctx.dataset.type === "bar") ? sym : "";
+              return `${ctx.dataset.label}: ${prefix}${Math.round(v).toLocaleString()}`;
+            }
+          }}
+        },
+        scales:{
+          x:{ticks:{color:"#9ca3af"}, grid:{color:"rgba(35,48,71,.35)"}},
+          y:{
+            position:"left",
+            ticks:{color:"#9ca3af", callback:(v)=>`${sym}${Number(v).toLocaleString()}`},
+            grid:{color:"rgba(35,48,71,.35)"},
+            title:{display:true, text:"Revenue & Profit", color:"#9ca3af"}
+          },
+          y1:{
+            position:"right",
+            ticks:{color:"#9ca3af", callback:(v)=>`${sym}${Number(v).toLocaleString()}`},
+            grid:{drawOnChartArea:false},
+            title:{display:true, text:"Net Cash & Profit/Loss (Cumulative)", color:"#9ca3af"}
+          }
+        }
+      }
+    });
+  }else{
+    profitabilityChart.data.labels = labels;
+    profitabilityChart.data.datasets[0].data = revenue;
+    profitabilityChart.data.datasets[1].data = profit;
+    profitabilityChart.data.datasets[2].data = electricity;
+    profitabilityChart.data.datasets[3].data = cashFlowCum;
+    profitabilityChart.data.datasets[4].data = profitLossCum;
+    profitabilityChart.update();
+  }
+  }else{
+    // Chart.js unavailable (offline / blocked). Skip chart rendering.
+  }
+
+  // Yearly tiles
+  UI.yearly.innerHTML = "";
+  const years = Math.ceil(months/12);
+  const canShowMined = !!UI.showBtcMined;
+  const showMined = canShowMined ? !!UI.showBtcMined.checked : false; // default to BTC held
+  for(let y=1; y<=years; y++){
+    const startIdx = Math.max(0, (y-1)*12);
+    const mIdx = Math.min(y*12-1, months-1);
+
+    // BTC held after any sales for OPEX (best), else fallback to cumulative NetBTC.
+    const btcHeld = (modelOut.rows[mIdx] && Number.isFinite(modelOut.rows[mIdx].BTCHeld))
+      ? modelOut.rows[mIdx].BTCHeld
+      : modelOut.rows.slice(0, mIdx+1).reduce((a,r)=>a + r.NetBTC, 0);
+
+    const btcMined = modelOut.rows.slice(0, mIdx+1).reduce((a,r)=>a + r.NetBTC, 0);
+    const btcShown = showMined ? btcMined : btcHeld;
+
+    const priceStart = modelOut.prices[startIdx];
+    const priceEnd = modelOut.prices[mIdx];
+    const yoy = (Number.isFinite(priceStart) && Number.isFinite(priceEnd) && priceStart>0) ? (priceEnd/priceStart - 1) : 0;
+
+    const valDisp = toDisplay(btcShown * priceEnd);
+
+    const div = document.createElement("div");
+    div.className="tile";
+    div.innerHTML = `
+      <h4>Year ${y}</h4>
+      <p>${sym}${fmtMoney(valDisp, state.currency)}</p>
+      <div class="muted" style="margin-top:6px">BTC Price YoY: ${(yoy*100).toFixed(1)}%</div>
+      <div class="muted" style="margin-top:6px">BTC: ${fmtNum(btcShown, 4)}</div>
+    `;
+    UI.yearly.appendChild(div);
+  }
+
+  // Cashflow table (monthly or annual summary)
+  const view = (state.cashflowView || (state.investorMode ? "annual" : "monthly"));
+  if(UI.cashflowViewLabel) UI.cashflowViewLabel.textContent = `View: ${view === "annual" ? "Annual summary" : "Monthly"}`;
+  if(UI.toggleCashflowView) UI.toggleCashflowView.textContent = view === "annual" ? "Switch to Monthly Detail" : "Switch to Annual Summary";
+
+  UI.cashflowTbody.innerHTML = "";
+  const frag = document.createDocumentFragment();
+
+  if(view === "annual"){
+    const years = Math.ceil(modelOut.rows.length / 12);
+    for(let y=0;y<years;y++){
+      const slice = modelOut.rows.slice(y*12, (y+1)*12);
+      if(!slice.length) continue;
+      const sum = (k)=>slice.reduce((a,r)=>a + (r[k]||0), 0);
+      const avgPrice = slice.reduce((a,r)=>a + (r.BTCPrice||0), 0) / slice.length;
+
+      const last = slice[slice.length-1];
+      const tr = document.createElement("tr");
+      tr.className = "year-subtotal";
+      tr.innerHTML = `
+        <td>Year ${y+1}</td>
+        <td>${fmtNum(sum("GrossBTC"),5)}</td>
+        <td>${fmtNum(sum("PoolFeeBTC"),5)}</td>
+        <td>${fmtNum(sum("NetBTC"),5)}</td>
+        <td>${sym}${Math.round(toDisplay(avgPrice)).toLocaleString()}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("RevenueUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("PowerUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("HostingUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("MgmtUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("InsuranceUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("RepairsUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(sum("NetCashUSD")),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(last.NetValueUSD),state.currency)}</td>
+      `;
+      frag.appendChild(tr);
+    }
+  } else {
+    for(let i=0;i<modelOut.rows.length;i++){
+      const r = modelOut.rows[i];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.Month}</td>
+        <td>${fmtNum(r.GrossBTC,5)}</td>
+        <td>${fmtNum(r.PoolFeeBTC,5)}</td>
+        <td>${fmtNum(r.NetBTC,5)}</td>
+        <td>${sym}${Math.round(toDisplay(r.BTCPrice)).toLocaleString()}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.RevenueUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.PowerUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.HostingUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.MgmtUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.InsuranceUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.RepairsUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.NetCashUSD),state.currency)}</td>
+        <td>${sym}${fmtMoney(toDisplay(r.NetValueUSD),state.currency)}</td>
+      `;
+      frag.appendChild(tr);
+
+      // Year subtotal every 12 months
+      if((i+1) % 12 === 0){
+        const slice = modelOut.rows.slice(i-11, i+1);
+        const sum = (k)=>slice.reduce((a,x)=>a + (x[k]||0), 0);
+        const tr2 = document.createElement("tr");
+        tr2.className = "year-subtotal";
+        tr2.innerHTML = `
+          <td>Year ${(i+1)/12} subtotal</td>
+          <td>${fmtNum(sum("GrossBTC"),5)}</td>
+          <td>${fmtNum(sum("PoolFeeBTC"),5)}</td>
+          <td>${fmtNum(sum("NetBTC"),5)}</td>
+          <td class="muted">—</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("RevenueUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("PowerUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("HostingUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("MgmtUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("InsuranceUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("RepairsUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(sum("NetCashUSD")),state.currency)}</td>
+          <td>${sym}${fmtMoney(toDisplay(r.NetValueUSD),state.currency)}</td>
+        `;
+        frag.appendChild(tr2);
+      }
+    }
+  }
+  UI.cashflowTbody.appendChild(frag);
+
+  // Sensitivity (MOIC) - quick recalcs with two dimensions
+  renderSensitivity();
+
+  // Assumptions panel
+  UI.assumptionsBtcPrice.textContent = `${symbolFor(state.currency)}${Math.round(toDisplay(getBtcPriceUSD())).toLocaleString()}`;
+  const ts = new Date().toLocaleString();
+  UI.timestamp.textContent = ts;
+  if(UI.timestamp2) UI.timestamp2.textContent = ts;
+}
+
+// Sensitivity helper: compute MOIC with multipliers
+function moicWithAdjustments(priceMult, powerMult){
+  const saved = state;
+  const tmp = _structuredClone(state);
+  tmp.powerCost = tmp.powerCost * powerMult;
+  tmp.btcOverride = String(getBtcPriceUSD() * priceMult);
+  tmp.priceDrift = state.priceDrift;
+  tmp.priceCycleAmp = state.priceCycleAmp;
+  tmp.priceCycleMonths = state.priceCycleMonths;
+  tmp.halvingAnchor = state.halvingAnchor;
+  state = tmp;
+  const out = model();
+  state = saved;
+  return out.moicNoResale;
+}
+
+function renderSensitivity(){
+  const basePower = state.powerCost;
+  const powers = [0.9, 1.0, 1.1].map(m => basePower*m);
+  const powerMults = [0.9, 1.0, 1.1];
+  const priceMults = [0.8, 1.0, 1.2];
+
+  UI.sensitivityTbody.innerHTML = "";
+  for(let i=0; i<3; i++){
+    const tr = document.createElement("tr");
+    const pow = powers[i];
+    const cells = [];
+    for(const pm of priceMults){
+      const moicVal = moicWithAdjustments(pm, powerMults[i]);
+      cells.push(`<td>${fmtNum(moicVal,2)}x</td>`);
+    }
+    tr.innerHTML = `<td style="text-align:left">${pow.toFixed(3)}</td>${cells.join("")}`;
+    UI.sensitivityTbody.appendChild(tr);
+  }
+}
+
+// Monte Carlo (simple)
+function randn(){
+  // Box-Muller
+  let u=0,v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function runMonteCarlo(runs=1000){
+  const baseScenario = SCENARIOS[state.scenario] ?? SCENARIOS.base;
+
+  let countMoic=0;
+  let countBE=0;
+  let sumEndingBTC=0;
+
+  const saved = _structuredClone(state);
+  const basePrice = getBtcPriceUSD();
+
+  for(let i=0; i<runs; i++){
+    // randomize around scenario:
+    // - cycle drift: mean scenario drift, stdev 10%
+    // - cycle amplitude: mean scenario amp, stdev 15%
+    // - difficulty growth: mean current input, stdev 10%
+    const drift = baseScenario.drift + randn()*10;
+    const amp = baseScenario.amp + randn()*15;
+    const diff = saved.difficultyGrowth + randn()*10;
+
+    state.priceDrift = clamp(drift, -30, 80);
+    state.priceCycleAmp = clamp(amp, 0, 120);
+    state.difficultyGrowth = clamp(diff, -20, 80);
+
+    UI.btcOverride.value = String(basePrice);
+
+    const out = model();
+
+    // break-even by month 18: cumulative USD cashflow + ending BTC value (conservative: ignore resale) >= 0
+    const m18 = Math.min(18, out.rows.length);
+    const netValue18 = m18>0 ? out.rows[m18-1].NetValueUSD : -out.capex;
+    const breakeven = netValue18 >= 0;
+
+    if(out.moic > 1.5) countMoic++;
+    if(breakeven) countBE++;
+    sumEndingBTC += out.endingBTC;
+  }
+
+  // restore
+  state = saved;
+  UI.btcOverride.value = saved.btcOverride;
+
+  UI.probMoic.textContent = fmtNum(100*countMoic/runs, 1);
+  UI.probBreakeven.textContent = fmtNum(100*countBE/runs, 1);
+  UI.avgEndingBtc.textContent = fmtNum(sumEndingBTC/runs, 4);
+}
+
+// ---------- Wiring ----------
+function setScenario(val){
+  state.scenario = val;
+  const s = SCENARIOS[val] || SCENARIOS.base;
+  if(s){
+    state.priceDrift = Number(s.drift);
+    state.priceCycleAmp = Number(s.amp);
+    if(UI.priceDrift) UI.priceDrift.value = state.priceDrift;
+    if(UI.priceCycleAmp) UI.priceCycleAmp.value = state.priceCycleAmp;
+    const driftRange = document.getElementById("priceDriftRange");
+    const ampRange = document.getElementById("priceCycleAmpRange");
+    if(driftRange) driftRange.value = state.priceDrift;
+    if(ampRange) ampRange.value = state.priceCycleAmp;
+  }
+  document.querySelectorAll(".scenario-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.val === val);
+  });
+  recalc();
+}
+
+function bindSliders(){
+  document.querySelectorAll('input[type="range"][data-bind]').forEach(range=>{
+    const key = range.dataset.bind;
+    const num = document.getElementById(key);
+    if(!num) return;
+
+    // Initialize range to number
+    range.value = num.value;
+
+    range.addEventListener("input", ()=>{
+      num.value = range.value;
+      recalc();
+    });
+    num.addEventListener("input", ()=>{
+      range.value = num.value;
+      recalc();
+    });
+  });
+}
+
+function setMinerModelDefaults(){
+  const opt = UI.minerModel.options[UI.minerModel.selectedIndex];
+  const h = Number(opt.dataset.hash);
+  const p = Number(opt.dataset.power);
+  const c = Number(opt.dataset.capex);
+
+  // set both number + range controls
+  UI.hashratePerMiner.value = h;
+  document.getElementById("hashrateRange").value = h;
+
+  UI.powerPerMiner.value = p;
+  document.getElementById("powerPerMinerRange").value = p;
+
+  UI.unitCapex.value = c;
+  document.getElementById("unitCapexRange").value = c;
+}
+
+const recalc = debounce(()=>{
+  getInputs();
+  // keep linked holdMonths range
+  UI.holdMonthsRange.value = UI.holdMonths.value;
+const out = model();
+  render(out);
+}, 40);
+
+function setTab(tab){
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  document.querySelectorAll(".tab-content").forEach(s=>s.classList.toggle("active", s.id===tab));
+}
+
+async function fetchBtcSpot(){
+  // Coinbase: GET https://api.coinbase.com/v2/prices/:currency_pair/spot
+  // We'll request BTC-USD and store amount. (No auth required per docs.)
+  try{
+    const res = await fetch("https://api.coinbase.com/v2/prices/BTC-USD/spot", {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const json = await res.json();
+    const amt = Number(json?.data?.amount);
+    if(!Number.isFinite(amt)) throw new Error("Bad payload");
+    btcSpotUSD = amt;
+    const disp = state.currency === "EUR" ? (amt * fxRate()) : amt;
+    const sym = symbolFor(state.currency);
+    UI.currentBtcPrice.value = sym + Math.round(disp).toLocaleString();
+    UI.assumptionsBtcPrice.textContent = sym + Math.round(disp).toLocaleString();
+  }catch(err){
+    // graceful fallback
+    UI.currentBtcPrice.value = "Fetch failed (enter manual)";
+    btcSpotUSD = null;
+  }finally{
+    recalc();
+  }
+}
+
+async function fetchHashrateSpot(){
+  // Blockchain.com hash-rate chart returns TH/s; convert to EH/s.
+  try{
+    if(UI.hashrateStatus) UI.hashrateStatus.textContent = "Fetching hashrate...";
+    const res = await fetch("https://api.blockchain.info/charts/hash-rate?timespan=30days&format=json&sampled=false", {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const json = await res.json();
+    const values = Array.isArray(json?.values) ? json.values : [];
+    const last = values.length ? values[values.length - 1] : null;
+    const th = Number(last?.y);
+    if(!Number.isFinite(th) || th <= 0) throw new Error("Bad payload");
+    const eh = th / 1_000_000;
+    UI.networkHashrateEH.value = Math.round(eh).toString();
+    document.getElementById("networkHashRange").value = UI.networkHashrateEH.value;
+    if(UI.hashrateStatus) UI.hashrateStatus.textContent = `Last updated: ${new Date().toLocaleString()}`;
+    recalc();
+  }catch(err){
+    if(UI.hashrateStatus) UI.hashrateStatus.textContent = "Fetch failed (file:// may block requests).";
+  }
+}
+
+
+
+async function fetchFxSpot(){
+  // Primary: open.er-api.com (no key). Fallback: ECB daily reference.
+  try{
+    const res = await fetch("https://open.er-api.com/v6/latest/USD", {cache:"no-store"});
+    if(res.ok){
+      const json = await res.json();
+      const rate = Number(json?.rates?.EUR);
+      if(Number.isFinite(rate) && rate > 0){
+        UI.fxRate.value = rate.toFixed(4);
+        recalc();
+        return;
+      }
+    }
+  }catch{}
+
+  // ECB fallback: EUR 1 = USD X  => USD->EUR = 1/X
+  try{
+    const res = await fetch("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml", {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const txt = await res.text();
+    const mm = txt.match(/currency=['\"]USD['\"]\s+rate=['\"]([0-9.]+)['\"]/);
+    if(mm){
+      const eurToUsd = Number(mm[1]);
+      if(Number.isFinite(eurToUsd) && eurToUsd > 0){
+        const usdToEur = 1/eurToUsd;
+        UI.fxRate.value = usdToEur.toFixed(4);
+      }
+    }
+  }catch{}
+  finally{ recalc(); }
+}
+
+function applyStateToUI(){
+  UI.minerModel.value = state.minerModel;
+  UI.currency.value = state.currency;
+  UI.fxRate.value = state.fxRate;
+  UI.minerCount.value = state.minerCount;
+  UI.holdMonths.value = state.holdMonths;
+  UI.holdMonthsRange.value = state.holdMonths;
+
+  UI.btcOverride.value = state.btcOverride;
+
+  UI.priceDrift.value = state.priceDrift;
+  document.getElementById("priceDriftRange").value = state.priceDrift;
+
+  UI.priceCycleAmp.value = state.priceCycleAmp;
+  document.getElementById("priceCycleAmpRange").value = state.priceCycleAmp;
+
+  UI.priceCycleMonths.value = state.priceCycleMonths;
+  document.getElementById("priceCycleMonthsRange").value = state.priceCycleMonths;
+
+  UI.halvingAnchor.value = state.halvingAnchor;
+
+  UI.unitCapex.value = state.unitCapex;
+  document.getElementById("unitCapexRange").value = state.unitCapex;
+
+  UI.powerCost.value = state.powerCost;
+  document.getElementById("powerCostRange").value = state.powerCost;
+
+  UI.hashratePerMiner.value = state.hashratePerMiner;
+  document.getElementById("hashrateRange").value = state.hashratePerMiner;
+
+  UI.powerPerMiner.value = state.powerPerMiner;
+  document.getElementById("powerPerMinerRange").value = state.powerPerMiner;
+
+  UI.networkHashrateEH.value = state.networkHashrateEH;
+  document.getElementById("networkHashRange").value = state.networkHashrateEH;
+
+  UI.uptime.value = state.uptime;
+  document.getElementById("uptimeRange").value = state.uptime;
+
+  UI.poolFee.value = state.poolFee;
+  document.getElementById("poolFeeRange").value = state.poolFee;
+
+  UI.hostingFee.value = state.hostingFee;
+  document.getElementById("hostingFeeRange").value = state.hostingFee;
+
+  UI.managementFee.value = state.managementFee;
+  document.getElementById("managementFeeRange").value = state.managementFee;
+
+  UI.insuranceFee.value = state.insuranceFee;
+  document.getElementById("insuranceFeeRange").value = state.insuranceFee;
+
+  UI.repairReserve.value = state.repairReserve;
+  document.getElementById("repairRange").value = state.repairReserve;
+UI.degradation.value = state.degradation;
+  document.getElementById("degradeRange").value = state.degradation;
+
+  UI.difficultyGrowth.value = state.difficultyGrowth;
+  document.getElementById("diffRange").value = state.difficultyGrowth;
+
+  UI.resaleValue.value = state.resaleValue;
+  document.getElementById("resaleRange").value = state.resaleValue;
+
+  UI.reinvestBtc.checked = state.reinvestBtc;
+
+  if(UI.investorMode) UI.investorMode.checked = !!state.investorMode;
+  applyInvestorMode();
+  // Keep cashflow view coherent
+  if(!state.cashflowView) state.cashflowView = state.investorMode ? "annual" : "monthly";
+
+  setScenario(state.scenario);
+}
+
+function resetAll(){
+  state = _structuredClone(DEFAULTS);
+  // reset scenario buttons
+  document.querySelectorAll(".scenario-btn").forEach(b=>b.classList.toggle("active", b.dataset.val===DEFAULTS.scenario));
+  applyStateToUI();
+  btcSpotUSD = null;
+  UI.currentBtcPrice.value = "";
+  recalc();
+  runMonteCarlo(1000);
+}
+
+// Event listeners
+document.querySelectorAll(".scenario-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=> setScenario(btn.dataset.val));
+});
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=> setTab(btn.dataset.tab));
+});
+
+UI.toggleAssumptions.addEventListener("click", ()=>{
+  const open = UI.assumptionsPanel.style.display !== "none";
+  UI.assumptionsPanel.style.display = open ? "none" : "block";
+  UI.toggleAssumptions.textContent = open ? "Show Assumptions" : "Hide Assumptions";
+});
+
+UI.minerMinus.addEventListener("click", ()=>{
+  UI.minerCount.value = String(Math.max(1, Number(UI.minerCount.value||1) - 1));
+  recalc();
+});
+UI.minerPlus.addEventListener("click", ()=>{
+  UI.minerCount.value = String(Number(UI.minerCount.value||1) + 1);
+  recalc();
+});
+
+UI.minerModel.addEventListener("change", ()=>{
+  setMinerModelDefaults();
+  recalc();
+});
+
+["currency","fxRate","minerCount","holdMonths","btcOverride","priceDrift","priceCycleAmp","priceCycleMonths","halvingAnchor","reinvestBtc"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", recalc);
+});
+[
+  "unitCapex","powerCost","hashratePerMiner","powerPerMiner","networkHashrateEH","uptime",
+  "poolFee","hostingFee","managementFee","insuranceFee","repairReserve","degradation","difficultyGrowth","resaleValue"
+].forEach(id => document.getElementById(id).addEventListener("input", recalc));
+
+UI.refreshPrice.addEventListener("click", fetchBtcSpot);
+UI.refreshFx.addEventListener("click", fetchFxSpot);
+UI.refreshHashrate && UI.refreshHashrate.addEventListener("click", fetchHashrateSpot);
+
+UI.exportBtn.addEventListener("click", ()=>{
+  const out = model();
+  const exportRows = out.rows.map(r => ({
+    Month: r.Month,
+    GrossBTC: round(r.GrossBTC, 8),
+    PoolFeeBTC: round(r.PoolFeeBTC, 8),
+    NetBTC: round(r.NetBTC, 8),
+    BTCPriceUSD: round(r.BTCPrice, 2),
+    RevenueUSD: round(r.RevenueUSD, 2),
+    PowerUSD: round(r.PowerUSD, 2),
+    HostingUSD: round(r.HostingUSD, 2),
+    MgmtUSD: round(r.MgmtUSD, 2),
+    InsuranceUSD: round(r.InsuranceUSD, 2),
+    RepairsUSD: round(r.RepairsUSD, 2),
+    NetCashUSD: round(r.NetCashUSD, 2),
+    CumNetValueUSD: round(r.NetValueUSD, 2),
+  }));
+  exportCSV(exportRows);
+});
+
+UI.shareBtn.addEventListener("click", shareScenario);
+UI.exportHtmlBtn && UI.exportHtmlBtn.addEventListener("click", exportOnePager);
+UI.exportPdfBtn && UI.exportPdfBtn.addEventListener("click", exportPdfOnePager);
+UI.toggleCashflowView && UI.toggleCashflowView.addEventListener("click", ()=>{
+  state.cashflowView = (state.cashflowView === "monthly") ? "annual" : "monthly";
+  applyStateToUI();
+  recalc();
+});
+UI.investorMode && UI.investorMode.addEventListener("change", ()=>{
+  state.investorMode = UI.investorMode.checked;
+  applyInvestorMode();
+  applyStateToUI();
+  recalc();
+});
+
+UI.rerunMC.addEventListener("click", ()=>runMonteCarlo(1000));
+UI.resetBtn.addEventListener("click", resetAll);
+
+// init
+loadFromQuery();
+applyStateToUI();
+applyInvestorMode();
+bindSliders();
+setMinerModelDefaults();
+fetchFxSpot();
+fetchBtcSpot();
+recalc();
+runMonteCarlo(1000);
+
+// ---- Advanced Assumptions collapse ----
+(function(){
+  const panel = document.getElementById("advancedAssumptions");
+  const btn = document.getElementById("toggleAdvanced");
+  if(!panel || !btn) return;
+
+  const saved = localStorage.getItem("showAdvancedAssumptions");
+  const open = saved === "1";
+  panel.style.display = open ? "block" : "none";
+  btn.textContent = open ? "Hide" : "Show";
+
+  btn.addEventListener("click", ()=>{
+    // In Investor Mode, the first click "unlocks" advanced assumptions
+    if(state.investorMode && !state.advancedUnlocked){
+      state.advancedUnlocked = true;
+      panel.style.display = "block";
+      setAdvancedEnabled(true);
+      btn.textContent = "Hide";
+      localStorage.setItem("showAdvancedAssumptions", "1");
+      return;
+    }
+    const isOpen = panel.style.display !== "none";
+    panel.style.display = isOpen ? "none" : "block";
+    btn.textContent = isOpen ? "Show" : "Hide";
+    localStorage.setItem("showAdvancedAssumptions", isOpen ? "0" : "1");
+  });
+
+  // Re-apply Investor Mode lock rules after restoring saved state
+  if(typeof applyInvestorMode === "function") applyInvestorMode();
+})();
+
+</script>
+</body>
+</html>
