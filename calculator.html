@@ -458,7 +458,8 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
           <button class="btn primary" id="shareBtn">Share Scenario</button>
           <button class="btn" id="exportBtn">Download Data (CSV)</button>
           <div id="onepager"></div>
-          <button class="btn" id="exportHtmlBtn">Download 1‑Page Report</button>
+          <button class="btn" id="exportHtmlBtn">Download 1-Page Report (HTML)</button>
+          <button class="btn" id="exportPdfBtn">Download 1-Page Report (PDF)</button>
         </div>
         <div class="note">
           Tip: If “Share Scenario” link is long, it’s because it includes all assumptions as URL params.
@@ -575,7 +576,7 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
         <div class="divider"></div>
 
         <h3>Buying DCA vs Mining BTC</h3>
-        <div class="comparison" title="DCA: Same total cash invested (capex + any out-of-pocket OPEX) divided monthly into BTC at monthly prices. Mining: Ending BTC from mining after OPEX choice.">
+        <div class="comparison" title="DCA: Same cash outflows timing (capex upfront + out-of-pocket OPEX each month) into BTC at monthly prices. Mining: Ending BTC from mining after OPEX choice.">
           <div class="tile">
             <h4>Buying (DCA)</h4>
             <p>BTC: <span id="dcaBtc">0</span></p>
@@ -776,6 +777,8 @@ const UI = {
   rerunMC: document.getElementById("rerunMC"),
   exportBtn: document.getElementById("exportBtn"),
   shareBtn: document.getElementById("shareBtn"),
+  exportHtmlBtn: document.getElementById("exportHtmlBtn"),
+  exportPdfBtn: document.getElementById("exportPdfBtn"),
 };
 
 let state = _structuredClone(DEFAULTS);
@@ -1353,12 +1356,17 @@ function render(modelOut){
   UI.miningBtc.textContent = fmtNum(modelOut.endingBTC, 4);
   UI.miningValue.textContent = fmtMoney(toDisplay(modelOut.endingValueUSD + modelOut.resale), state.currency);
 
-  // DCA: invest same total cash invested evenly each month at monthly prices
+  // DCA: match actual cash outflows by month (capex upfront + monthly out-of-pocket OPEX)
   const months = state.holdMonths;
-  const investMonthly = modelOut.totalCashInvested / months;
   let dcaBTC = 0;
-  for(let i=0; i<months; i++){
-    dcaBTC += investMonthly / modelOut.prices[i];
+  if(modelOut.prices.length){
+    dcaBTC += modelOut.capex / modelOut.prices[0];
+  }
+  for(let i=0; i<modelOut.rows.length; i++){
+    const outOfPocket = Math.max(0, -Number(modelOut.rows[i].NetCashUSD || 0));
+    if(outOfPocket > 0){
+      dcaBTC += outOfPocket / modelOut.prices[i];
+    }
   }
   const dcaValue = dcaBTC * modelOut.prices[months-1];
 
