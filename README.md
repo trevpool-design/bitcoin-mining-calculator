@@ -1,4 +1,4 @@
-Mining Calculator Project
+Mining Calculator Project:https://trevpool-design.github.io/bitcoin-mining-calculator/ 
 
 Pantheon-Aligned Bitcoin Mining Economics Tool
 
@@ -134,5 +134,6 @@ Outputs should be interpreted as pre-tax, scenario-based estimates only.
 9. Guiding Principle
 
 “If this model still looks reasonable under conservative assumptions and clear risk disclosure, it may merit deeper diligence.”
+
 
 This project exists to surface risk, not obscure it.
