@@ -1,4 +1,4 @@
-Mining Calculator Project:https://trevpool-design.github.io/bitcoin-mining-calculator/ 
+Mining Calculator Project: https://trevpool-design.github.io/bitcoin-mining-calculator/ 
 
 Bitcoin Mining Economics Tool
 
@@ -137,4 +137,5 @@ Outputs should be interpreted as pre-tax, scenario-based estimates only.
 
 
 This project exists to surface risk, not obscure it.
+
 
