@@ -1,6 +1,6 @@
 Mining Calculator Project:https://trevpool-design.github.io/bitcoin-mining-calculator/ 
 
-Pantheon-Aligned Bitcoin Mining Economics Tool
+Bitcoin Mining Economics Tool
 
 1. Overview
 
@@ -65,7 +65,7 @@ Mining Calculator Project/
 │   └── CHANGELOG.md
 ├── brand/
 │   ├── BRAND.md
-│   └── PANTHEON_REFERENCE.md
+
 
 5. File Authority Hierarchy (Important)
 
@@ -73,7 +73,7 @@ When interpreting or modifying this project, authority flows in this order:
 
 ASSUMPTIONS.md — economic truth
 
-PANTHEON_REFERENCE.md — brand and tone reference
+brand and tone reference
 
 BRAND.md — visual and UI rules
 
@@ -137,3 +137,4 @@ Outputs should be interpreted as pre-tax, scenario-based estimates only.
 
 
 This project exists to surface risk, not obscure it.
+
