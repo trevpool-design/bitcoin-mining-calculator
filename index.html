@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bitcoin Calculator</title>
+  <title>Pantheon Mining | Landing</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -27,11 +27,12 @@
         radial-gradient(800px 500px at -10% 10%, rgba(38,54,71,0.40), transparent 55%),
         linear-gradient(180deg, #071421 0%, #0B1C2D 50%, #081521 100%);
     }
-    h1,h2{font-family:"IBM Plex Serif", Georgia, "Times New Roman", serif;}
+    h1,h2,h3{font-family:"IBM Plex Serif", Georgia, "Times New Roman", serif;}
     .wrap{max-width:1120px; margin:0 auto; padding:28px 18px 60px;}
     header{display:flex; align-items:center; justify-content:space-between; gap:16px;}
     .brand{font-weight:700; letter-spacing:0.2px;}
     .pill{border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted);} 
+
     .hero{margin-top:36px; display:grid; grid-template-columns:1.1fr 0.9fr; gap:24px; align-items:center;}
     .hero h1{font-size:42px; margin:0 0 14px; line-height:1.1;}
     .hero p{margin:0 0 18px; color:var(--muted); font-size:16px;}
@@ -41,27 +42,44 @@
       text-decoration:none; display:inline-flex; align-items:center; gap:10px; font-weight:600;
       background:rgba(18,30,43,0.6);
     }
-    .btn.primary{border-color:rgba(247,147,26,0.6); background:rgba(247,147,26,0.12);}
+    .btn.primary{border-color:rgba(247,147,26,0.6); background:rgba(247,147,26,0.12);}    
+
     .card{
       background:rgba(18,30,43,0.7); border:1px solid var(--line);
       border-radius:var(--radius); padding:16px; box-shadow:0 12px 24px rgba(0,0,0,0.25);
     }
-    .signal{display:flex; gap:10px; align-items:flex-start;}
-    .dot{width:8px; height:8px; border-radius:999px; background:var(--accent); margin-top:6px;}
-    .banner{margin-top:22px; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:rgba(18,30,43,0.55);}
-    .grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:26px;}
-    .k{font-size:12px; color:var(--muted); letter-spacing:0.3px;}
-    .v{font-size:20px; font-weight:700; margin-top:6px;}
     .section{margin-top:36px;}
     .section h2{font-size:18px; margin:0 0 12px;}
-    .list{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
-    .list .card{min-height:120px;}
+    .grid3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px;}
+    .grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px;}
+
+    .k{font-size:12px; color:var(--muted); letter-spacing:0.3px;}
+    .v{font-size:18px; font-weight:700; margin-top:6px;}
+
+    .table{
+      width:100%; border-collapse:collapse; margin-top:12px; font-size:12px;
+      border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+    }
+    .table th,.table td{padding:10px 8px; text-align:left; border-bottom:1px solid var(--line);}
+    .table th{color:var(--muted); font-weight:600; background:rgba(18,30,43,0.6);}
+    .table td{background:rgba(18,30,43,0.35);}    
+
+    .flow{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; align-items:center;}
+    .flow .step{padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(18,30,43,0.4); text-align:center; font-size:12px;}
+    .flow .arrow{font-size:20px; color:var(--muted); text-align:center;}
+
+    .bullets{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px;}
+    .bullet{padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(18,30,43,0.35); font-size:12px;}
+
+    .disclosure{font-size:12px; color:var(--muted); line-height:1.5;}
     .footer{margin-top:42px; color:var(--muted); font-size:12px; border-top:1px solid var(--line); padding-top:16px;}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size:12px; color:var(--muted);} 
+
     @media (max-width: 980px){
       .hero{grid-template-columns:1fr;}
-      .grid{grid-template-columns:1fr;}
-      .list{grid-template-columns:1fr;}
+      .grid3{grid-template-columns:1fr;}
+      .grid2{grid-template-columns:1fr;}
+      .flow{grid-template-columns:1fr;}
+      .bullets{grid-template-columns:1fr;}
       header{flex-direction:column; align-items:flex-start;}
     }
   </style>
@@ -69,99 +87,110 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">Bitcoin Calculator</div>
+      <div class="brand">Pantheon Mining</div>
       <div class="pill">Investor Calculator v8</div>
     </header>
 
     <section class="hero">
       <div>
-        <h1>Bitcoin mining economics, built for investor decisions.</h1>
+        <h1>Own hashpower. Earn BTC - Straight to your Wallet.</h1>
         <p>
-          A conservative, scenario-based calculator that highlights sensitivity to power cost,
-          difficulty growth, and price cycles. Built for diligence, not promotion.
+          Compare mining vs buying vs a blended approach with transparent assumptions and investor-grade outputs.
         </p>
         <div class="cta">
-          <a class="btn primary" href="calculator.html">Open Calculator</a>
-          <a class="btn" href="calculator.html#executive">View Executive Snapshot</a>
+          <a class="btn primary" href="calculator.html">Run the calculator</a>
+          <a class="btn" href="calculator.html#assumptions">View assumptions</a>
+          <a class="btn" href="calculator.html#onepager">Download 1-page explainer</a>
         </div>
-        <div class="mono" style="margin-top:12px;">Latest: cycle-based BTC price model, live FX and hashrate refresh, one-page export.</div>
-        <div class="banner mono">Tip: open the calculator in a browser-served URL (not file://) to enable live data.</div>
       </div>
       <div class="card">
-        <div class="k">What it does</div>
-        <div class="v">Turns assumptions into investor-grade outputs.</div>
-        <p class="mono" style="margin-top:10px; line-height:1.5;">
-          IRR, MOIC, payback, DCA comparison, cash flow bridge, sensitivity,
-          and Monte Carlo. All assumptions are explicit and adjustable.
-        </p>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="card">
-        <div class="k">Focus</div>
-        <div class="v">MOIC and cost basis</div>
-      </div>
-      <div class="card">
-        <div class="k">Data</div>
-        <div class="v">Live BTC price, FX, and hashrate</div>
-      </div>
-      <div class="card">
-        <div class="k">Discipline</div>
-        <div class="v">Conservative defaults and risk visibility</div>
+        <div class="k">Quick compare</div>
+        <div class="v">Mine vs Buy vs Hybrid</div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Mine</th>
+              <th>Buy</th>
+              <th>Hybrid</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Exposure</td>
+              <td>BTC + operational upside</td>
+              <td>BTC price only</td>
+              <td>BTC + partial ops</td>
+            </tr>
+            <tr>
+              <td>Volatility</td>
+              <td>High (price + ops)</td>
+              <td>High (price)</td>
+              <td>Moderate</td>
+            </tr>
+            <tr>
+              <td>Operating risk</td>
+              <td>High (power, uptime)</td>
+              <td>Low</td>
+              <td>Medium</td>
+            </tr>
+            <tr>
+              <td>Cost basis behavior</td>
+              <td>Reduces over time</td>
+              <td>Spot cost basis</td>
+              <td>Smooths entry</td>
+            </tr>
+            <tr>
+              <td>Liquidity</td>
+              <td>Medium (asset bound)</td>
+              <td>High</td>
+              <td>Medium-high</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
     <section class="section">
-      <h2>Key signals it surfaces</h2>
-      <div class="list">
-        <div class="card">
-          <div class="signal"><span class="dot"></span><div><div class="k">Cost basis</div><div class="v">Power cost dominates</div></div></div>
-          <p class="mono" style="margin-top:8px;">Small changes in $/kWh materially swing MOIC.</p>
-        </div>
-        <div class="card">
-          <div class="signal"><span class="dot"></span><div><div class="k">Competition</div><div class="v">Difficulty growth compounds</div></div></div>
-          <p class="mono" style="margin-top:8px;">The model treats difficulty as a rising headwind, not a flat assumption.</p>
-        </div>
-        <div class="card">
-          <div class="signal"><span class="dot"></span><div><div class="k">Cycle risk</div><div class="v">Non-linear price paths</div></div></div>
-          <p class="mono" style="margin-top:8px;">Cycle drift and amplitude show the cost of timing, not just trend.</p>
-        </div>
-        <div class="card">
-          <div class="signal"><span class="dot"></span><div><div class="k">Capital drag</div><div class="v">Upfront capex matters</div></div></div>
-          <p class="mono" style="margin-top:8px;">Compare mining vs DCA on equal cash invested.</p>
-        </div>
+      <h2>How mining generates returns</h2>
+      <div class="flow">
+        <div class="step">Capex</div>
+        <div class="arrow">?</div>
+        <div class="step">Hashpower</div>
+        <div class="arrow">?</div>
+        <div class="step">BTC production</div>
+        <div class="arrow">?</div>
+        <div class="step">Costs/fees</div>
+        <div class="arrow">?</div>
+        <div class="step">BTC held/sold</div>
       </div>
     </section>
 
     <section class="section">
-      <h2>How to use it</h2>
-      <div class="list">
-        <div class="card">
-          <div class="k">Step 1</div>
-          <div class="v">Start with conservative assumptions</div>
-          <p class="mono" style="margin-top:8px;">Power cost, uptime, difficulty growth, and cycle drift are the key drivers.</p>
+      <h2>What drives outcomes</h2>
+      <div class="bullets">
+        <div class="bullet"><strong>BTC price</strong><br/>Cycle and drift dominate returns.</div>
+        <div class="bullet"><strong>Difficulty/hashrate</strong><br/>Network growth reduces share.</div>
+        <div class="bullet"><strong>Power price</strong><br/>$ / kWh is the largest cost input.</div>
+        <div class="bullet"><strong>Uptime</strong><br/>Availability directly impacts BTC output.</div>
+        <div class="bullet"><strong>Fees</strong><br/>Pool, hosting, and management stack.</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Risks & disclosures</h2>
+      <div class="grid2">
+        <div class="card disclosure">
+          Returns depend on BTC price, network difficulty, and operational execution. This calculator is scenario-based and pre-tax, with simplified assumptions.
         </div>
-        <div class="card">
-          <div class="k">Step 2</div>
-          <div class="v">Stress test sensitivity</div>
-          <p class="mono" style="margin-top:8px;">Watch MOIC move with price and power shocks.</p>
-        </div>
-        <div class="card">
-          <div class="k">Step 3</div>
-          <div class="v">Compare to DCA</div>
-          <p class="mono" style="margin-top:8px;">Use equal cash invested to compare BTC mined vs BTC bought.</p>
-        </div>
-        <div class="card">
-          <div class="k">Step 4</div>
-          <div class="v">Export investor summary</div>
-          <p class="mono" style="margin-top:8px;">Download a one-page snapshot for memo or IC review.</p>
+        <div class="card disclosure">
+          Past performance and model outputs do not guarantee future results. Hardware performance, downtime, and counterparty risk can materially affect outcomes.
         </div>
       </div>
     </section>
 
     <div class="footer">
-      This tool is scenario-based and pre-tax. Use it to surface risk, not to promise outcomes.
+      This tool is for informational purposes only and does not constitute financial advice.
     </div>
   </div>
 </body>
