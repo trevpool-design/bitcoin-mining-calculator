@@ -248,7 +248,7 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       <div class="row" style="align-items:flex-end">
         <div>
           <h2>Investment Calculator</h2>
-          <div class="pill" title="Single-file demo: CSS + JS included">v8 - cycle model</div>
+          <div class="pill" title="Single-file demo: CSS + JS included">v8 - yearly returns</div>
         </div>
         <button id="resetBtn" class="btn small danger" title="Reset everything to defaults">Reset</button>
       </div>
@@ -317,27 +317,37 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       <div id="assumptions"></div>
       <h3 style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">Advanced Assumptions (sliders)<button id="toggleAdvanced" class="btn small ghost" style="margin-left:8px;">Show</button></h3><div id="advancedAssumptions" style="display:none;">
 
-      <label title="Long-term annual drift for the BTC cycle model (trend component).">BTC Price Drift (annual, %)</label>
-      <div class="slider-wrap">
-        <input type="range" id="priceDriftRange" min="-20" max="60" step="1" value="20" data-bind="priceDrift">
-        <input type="number" id="priceDrift" value="20" step="1" min="-90" max="200">
-      </div>
+      <label title="Custom yearly Bitcoin returns for each year of the hold period">BTC Yearly Returns (%)</label>
+      <div class="note" style="margin-bottom:8px">Enter the expected annual return for each year (e.g., 25 for +25%, -50 for -50%)</div>
 
-      <label title="Cycle swing size around the drift trend. Higher amplitude = deeper drawdowns and higher peaks.">BTC Cycle Amplitude (+/- %)</label>
-      <div class="slider-wrap">
-        <input type="range" id="priceCycleAmpRange" min="0" max="150" step="1" value="60" data-bind="priceCycleAmp">
-        <input type="number" id="priceCycleAmp" value="60" step="1" min="0" max="200">
+      <div class="row" style="margin-top:6px">
+        <div style="flex:1">
+          <label style="margin-top:0; font-size:11px">Year 1</label>
+          <input type="number" id="yearReturn1" value="25" step="1" min="-99" max="1000" style="margin-top:4px">
+        </div>
+        <div style="flex:1">
+          <label style="margin-top:0; font-size:11px">Year 2</label>
+          <input type="number" id="yearReturn2" value="130" step="1" min="-99" max="1000" style="margin-top:4px">
+        </div>
       </div>
-
-      <label title="Approximate length of a full BTC price cycle in months.">BTC Cycle Length (months)</label>
-      <div class="slider-wrap">
-        <input type="range" id="priceCycleMonthsRange" min="24" max="72" step="1" value="48" data-bind="priceCycleMonths">
-        <input type="number" id="priceCycleMonths" value="48" step="1" min="12" max="96">
+      <div class="row" style="margin-top:6px">
+        <div style="flex:1">
+          <label style="margin-top:0; font-size:11px">Year 3</label>
+          <input type="number" id="yearReturn3" value="-50" step="1" min="-99" max="1000" style="margin-top:4px">
+        </div>
+        <div style="flex:1">
+          <label style="margin-top:0; font-size:11px">Year 4</label>
+          <input type="number" id="yearReturn4" value="5" step="1" min="-99" max="1000" style="margin-top:4px">
+        </div>
       </div>
-
-      <label title="Aligns the cycle phase to the most recent halving date.">Halving Anchor Date</label>
-      <input type="date" id="halvingAnchor" value="2024-04-20">
-      <div class="note">Used to align the price cycle phase to the most recent halving.</div>
+      <div class="row" style="margin-top:6px">
+        <div style="flex:1">
+          <label style="margin-top:0; font-size:11px">Year 5</label>
+          <input type="number" id="yearReturn5" value="65" step="1" min="-99" max="1000" style="margin-top:4px">
+        </div>
+        <div style="flex:1"></div>
+      </div>
+      <div class="note" style="margin-top:8px">Price at end of each year = Start Price × cumulative returns</div>
 
 
       <label>Unit Miner Cost (Capex per miner)</label>
@@ -444,11 +454,11 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       <div id="assumptionsPanel" style="display:none; margin-top:10px">
         <p class="muted" style="margin:6px 0"><strong>Current BTC Price:</strong> <span id="assumptionsBtcPrice">—</span></p>
         <p class="muted" style="margin:6px 0"><strong>Block Reward:</strong> 3.125 BTC (halving in month 28)</p>
-        <p class="muted" style="margin:6px 0"><strong>BTC Price Model:</strong> Cycle-based (drift + amplitude)</p>
+        <p class="muted" style="margin:6px 0"><strong>BTC Price Model:</strong> Custom yearly returns (5 years)</p>
         <ul class="muted" style="margin:6px 0 0 18px">
-          <li>Bear: 5% drift, 45% amplitude</li>
-          <li>Base: 20% drift, 60% amplitude</li>
-          <li>Bull: 35% drift, 80% amplitude</li>
+          <li>Bear: +10%, +50%, -60%, -10%, +30%</li>
+          <li>Base: +25%, +130%, -50%, +5%, +65%</li>
+          <li>Bull: +50%, +200%, -30%, +25%, +100%</li>
         </ul>
         <p class="muted" style="margin:8px 0"><strong>Last updated:</strong> <span id="timestamp"></span></p>
       </div>
@@ -639,7 +649,7 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
 
       <section id="montecarlo" class="tab-content">
         <h2>Monte Carlo Simulation (1,000 runs)</h2>
-        <p class="muted">Cycle drift/amplitude and difficulty growth are randomized around the selected scenario; this is a lightweight “sanity check,” not a trading model.</p>
+        <p class="muted">Yearly returns and difficulty growth are randomized around the selected scenario; this is a lightweight "sanity check," not a trading model.</p>
         <div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">
           <div class="tile">
             <h3>Prob. MOIC &gt; 1.5x</h3>
@@ -685,10 +695,11 @@ const DEFAULTS = {
   advancedUnlocked: true,
   cashflowView: "monthly",
   btcOverride: "",
-  priceDrift: 20,
-  priceCycleAmp: 60,
-  priceCycleMonths: 48,
-  halvingAnchor: "2024-04-20",
+  yearReturn1: 25,
+  yearReturn2: 130,
+  yearReturn3: -50,
+  yearReturn4: 5,
+  yearReturn5: 65,
   unitCapex: 9600,
   powerCost: 0.05,
   hashratePerMiner: 335,
@@ -707,9 +718,9 @@ const DEFAULTS = {
 };
 
 const SCENARIOS = {
-  bear: { drift: 5, amp: 45 },
-  base: { drift: 20, amp: 60 },
-  bull: { drift: 35, amp: 80 },
+  bear: { yearReturn1: 10, yearReturn2: 50, yearReturn3: -60, yearReturn4: -10, yearReturn5: 30 },
+  base: { yearReturn1: 25, yearReturn2: 130, yearReturn3: -50, yearReturn4: 5, yearReturn5: 65 },
+  bull: { yearReturn1: 50, yearReturn2: 200, yearReturn3: -30, yearReturn4: 25, yearReturn5: 100 },
 };
 
 const UI = {
@@ -727,10 +738,11 @@ const UI = {
   holdMonthsRange: document.getElementById("holdMonthsRange"),
   currentBtcPrice: document.getElementById("currentBtcPrice"),
   btcOverride: document.getElementById("btcOverride"),
-  priceDrift: document.getElementById("priceDrift"),
-  priceCycleAmp: document.getElementById("priceCycleAmp"),
-  priceCycleMonths: document.getElementById("priceCycleMonths"),
-  halvingAnchor: document.getElementById("halvingAnchor"),
+  yearReturn1: document.getElementById("yearReturn1"),
+  yearReturn2: document.getElementById("yearReturn2"),
+  yearReturn3: document.getElementById("yearReturn3"),
+  yearReturn4: document.getElementById("yearReturn4"),
+  yearReturn5: document.getElementById("yearReturn5"),
   refreshPrice: document.getElementById("refreshPrice"),
   toggleAssumptions: document.getElementById("toggleAssumptions"),
   assumptionsPanel: document.getElementById("assumptionsPanel"),
@@ -1038,8 +1050,7 @@ function buildOnePagerHtml(){
       <tr><td>Uptime</td><td>${fmtNum(state.uptime,1)}%</td></tr>
       <tr><td>All-in Fees (pool+hosting+mgmt+ins+repairs)</td><td>${fmtNum(state.poolFee+state.hostingFee+state.managementFee+state.insuranceFee+state.repairReserve,2)}%</td></tr>
       <tr><td>Difficulty Growth (annualized)</td><td>${fmtNum(state.difficultyGrowth,1)}%</td></tr>
-      <tr><td>Price Drift (annual)</td><td>${fmtNum(state.priceDrift,1)}%</td></tr>
-      <tr><td>Cycle Amplitude</td><td>+/-${fmtNum(state.priceCycleAmp,0)}%</td></tr>
+      <tr><td>BTC Yearly Returns</td><td>Y1: ${state.yearReturn1}%, Y2: ${state.yearReturn2}%, Y3: ${state.yearReturn3}%, Y4: ${state.yearReturn4}%, Y5: ${state.yearReturn5}%</td></tr>
     </tbody>
   </table>
 
@@ -1110,10 +1121,11 @@ function getInputs(){
   state.minerCount = clamp(parseInt(UI.minerCount.value || 1, 10), 1, 1000000);
   state.holdMonths = clamp(parseInt(UI.holdMonths.value || 1, 10), 1, 120);
   state.btcOverride = UI.btcOverride.value;
-  state.priceDrift = Number(UI.priceDrift.value);
-  state.priceCycleAmp = Number(UI.priceCycleAmp.value);
-  state.priceCycleMonths = Number(UI.priceCycleMonths.value);
-  state.halvingAnchor = UI.halvingAnchor.value || DEFAULTS.halvingAnchor;
+  state.yearReturn1 = Number(UI.yearReturn1.value);
+  state.yearReturn2 = Number(UI.yearReturn2.value);
+  state.yearReturn3 = Number(UI.yearReturn3.value);
+  state.yearReturn4 = Number(UI.yearReturn4.value);
+  state.yearReturn5 = Number(UI.yearReturn5.value);
 
   state.unitCapex = Number(UI.unitCapex.value);
   state.powerCost = Number(UI.powerCost.value);
@@ -1146,33 +1158,52 @@ function getBtcPriceUSD(){
   return 100000; // fallback so UI isn't empty
 }
 
-function monthsSinceHalving(anchor){
-  const anchorDate = new Date(anchor + "T00:00:00Z");
-  if(Number.isNaN(anchorDate.getTime())) return 0;
-  const now = new Date();
-  const months = (now.getUTCFullYear() - anchorDate.getUTCFullYear()) * 12 + (now.getUTCMonth() - anchorDate.getUTCMonth());
-  return Math.max(0, months);
+function getYearlyReturns(){
+  // Returns array of yearly returns as decimals (e.g., 0.25 for 25%)
+  return [
+    clamp(Number(state.yearReturn1) || 0, -99, 1000) / 100,
+    clamp(Number(state.yearReturn2) || 0, -99, 1000) / 100,
+    clamp(Number(state.yearReturn3) || 0, -99, 1000) / 100,
+    clamp(Number(state.yearReturn4) || 0, -99, 1000) / 100,
+    clamp(Number(state.yearReturn5) || 0, -99, 1000) / 100,
+  ];
 }
 
-function cycleFactor(monthIndex){
-  const cycleMonths = clamp(Number(state.priceCycleMonths) || 48, 12, 120);
-  const amp = clamp(Number(state.priceCycleAmp) || 0, 0, 200) / 100;
-  const t0 = monthsSinceHalving(state.halvingAnchor || DEFAULTS.halvingAnchor);
-  const t = t0 + monthIndex;
-  const phase = (2 * Math.PI * (t / cycleMonths)) - Math.PI / 2;
-  const raw = 1 + amp * Math.sin(phase);
-  return Math.max(0.2, raw);
-}
-
-function pricePathUSD(months){  const drift = clamp(Number(state.priceDrift) || 0, -90, 200) / 100;
+function pricePathUSD(months){
   const p0 = getBtcPriceUSD();
+  const yearlyReturns = getYearlyReturns();
   const prices = [];
-  const c0 = cycleFactor(0);
+
   for(let i=0; i<months; i++){
-    const trend = Math.pow(1 + drift, i/12);
-    const c = cycleFactor(i);
-    const price = p0 * trend * (c / c0);
-    prices.push(Math.max(1000, price));
+    // Determine which year this month falls into (0-indexed)
+    const yearIndex = Math.floor(i / 12);
+    const monthInYear = i % 12;
+
+    // Calculate cumulative price up to the start of this year
+    let cumulativePrice = p0;
+    for(let y=0; y<yearIndex && y<yearlyReturns.length; y++){
+      cumulativePrice *= (1 + yearlyReturns[y]);
+    }
+
+    // Apply partial year return for current year (linear interpolation within the year)
+    if(yearIndex < yearlyReturns.length){
+      const yearReturn = yearlyReturns[yearIndex];
+      // Interpolate: at month 0 of year, no gain yet; at month 11, full year gain
+      const monthFraction = monthInYear / 12;
+      const partialReturn = yearReturn * monthFraction;
+      cumulativePrice *= (1 + partialReturn);
+    } else {
+      // Beyond year 5, use year 5's return for any additional months
+      const lastReturn = yearlyReturns[yearlyReturns.length - 1];
+      const extraYears = yearIndex - yearlyReturns.length;
+      for(let e=0; e<extraYears; e++){
+        cumulativePrice *= (1 + lastReturn);
+      }
+      const monthFraction = monthInYear / 12;
+      cumulativePrice *= (1 + lastReturn * monthFraction);
+    }
+
+    prices.push(Math.max(1000, cumulativePrice));
   }
   return prices;
 }
@@ -1416,8 +1447,8 @@ function render(modelOut){
       <div><strong>Unit Cost:</strong> ${sym}${Math.round(toDisplay(state.unitCapex)).toLocaleString()} - <strong>Power:</strong> ${state.powerCost.toFixed(3)} USD/kWh</div>
       <div><strong>Uptime:</strong> ${state.uptime.toFixed(1)}% - <strong>Pool Fee:</strong> ${state.poolFee.toFixed(1)}%</div>
       <div><strong>Network Hash:</strong> ${Math.round(state.networkHashrateEH).toLocaleString()} EH/s - <strong>Difficulty Growth:</strong> ${state.difficultyGrowth.toFixed(1)}%/yr</div>
-      <div><strong>Start BTC Price:</strong> ${sym}${basePriceDisp} - <strong>Cycle Drift:</strong> ${state.priceDrift.toFixed(1)}%/yr</div>
-      <div><strong>Cycle Amplitude:</strong> +/-${state.priceCycleAmp.toFixed(0)}% - <strong>Hold Period:</strong> ${state.holdMonths} months</div>
+      <div><strong>Start BTC Price:</strong> ${sym}${basePriceDisp} - <strong>Hold Period:</strong> ${state.holdMonths} months</div>
+      <div><strong>BTC Yearly Returns:</strong> Y1: ${state.yearReturn1}%, Y2: ${state.yearReturn2}%, Y3: ${state.yearReturn3}%, Y4: ${state.yearReturn4}%, Y5: ${state.yearReturn5}%</div>
     `;
   }
 
@@ -1666,10 +1697,11 @@ function moicWithAdjustments(priceMult, powerMult){
   const tmp = _structuredClone(state);
   tmp.powerCost = tmp.powerCost * powerMult;
   tmp.btcOverride = String(getBtcPriceUSD() * priceMult);
-  tmp.priceDrift = state.priceDrift;
-  tmp.priceCycleAmp = state.priceCycleAmp;
-  tmp.priceCycleMonths = state.priceCycleMonths;
-  tmp.halvingAnchor = state.halvingAnchor;
+  tmp.yearReturn1 = state.yearReturn1;
+  tmp.yearReturn2 = state.yearReturn2;
+  tmp.yearReturn3 = state.yearReturn3;
+  tmp.yearReturn4 = state.yearReturn4;
+  tmp.yearReturn5 = state.yearReturn5;
   state = tmp;
   const out = model();
   state = saved;
@@ -1716,15 +1748,14 @@ function runMonteCarlo(runs=1000){
 
   for(let i=0; i<runs; i++){
     // randomize around scenario:
-    // - cycle drift: mean scenario drift, stdev 10%
-    // - cycle amplitude: mean scenario amp, stdev 15%
+    // - yearly returns: mean scenario return ± 20% stdev for each year
     // - difficulty growth: mean current input, stdev 10%
-    const drift = baseScenario.drift + randn()*10;
-    const amp = baseScenario.amp + randn()*15;
+    state.yearReturn1 = clamp(baseScenario.yearReturn1 + randn()*20, -90, 500);
+    state.yearReturn2 = clamp(baseScenario.yearReturn2 + randn()*30, -90, 500);
+    state.yearReturn3 = clamp(baseScenario.yearReturn3 + randn()*25, -90, 500);
+    state.yearReturn4 = clamp(baseScenario.yearReturn4 + randn()*20, -90, 500);
+    state.yearReturn5 = clamp(baseScenario.yearReturn5 + randn()*25, -90, 500);
     const diff = saved.difficultyGrowth + randn()*10;
-
-    state.priceDrift = clamp(drift, -30, 80);
-    state.priceCycleAmp = clamp(amp, 0, 120);
     state.difficultyGrowth = clamp(diff, -20, 80);
 
     UI.btcOverride.value = String(basePrice);
@@ -1755,14 +1786,16 @@ function setScenario(val){
   state.scenario = val;
   const s = SCENARIOS[val] || SCENARIOS.base;
   if(s){
-    state.priceDrift = Number(s.drift);
-    state.priceCycleAmp = Number(s.amp);
-    if(UI.priceDrift) UI.priceDrift.value = state.priceDrift;
-    if(UI.priceCycleAmp) UI.priceCycleAmp.value = state.priceCycleAmp;
-    const driftRange = document.getElementById("priceDriftRange");
-    const ampRange = document.getElementById("priceCycleAmpRange");
-    if(driftRange) driftRange.value = state.priceDrift;
-    if(ampRange) ampRange.value = state.priceCycleAmp;
+    state.yearReturn1 = Number(s.yearReturn1);
+    state.yearReturn2 = Number(s.yearReturn2);
+    state.yearReturn3 = Number(s.yearReturn3);
+    state.yearReturn4 = Number(s.yearReturn4);
+    state.yearReturn5 = Number(s.yearReturn5);
+    if(UI.yearReturn1) UI.yearReturn1.value = state.yearReturn1;
+    if(UI.yearReturn2) UI.yearReturn2.value = state.yearReturn2;
+    if(UI.yearReturn3) UI.yearReturn3.value = state.yearReturn3;
+    if(UI.yearReturn4) UI.yearReturn4.value = state.yearReturn4;
+    if(UI.yearReturn5) UI.yearReturn5.value = state.yearReturn5;
   }
   document.querySelectorAll(".scenario-btn").forEach(b=>{
     b.classList.toggle("active", b.dataset.val === val);
@@ -1908,16 +1941,11 @@ function applyStateToUI(){
 
   UI.btcOverride.value = state.btcOverride;
 
-  UI.priceDrift.value = state.priceDrift;
-  document.getElementById("priceDriftRange").value = state.priceDrift;
-
-  UI.priceCycleAmp.value = state.priceCycleAmp;
-  document.getElementById("priceCycleAmpRange").value = state.priceCycleAmp;
-
-  UI.priceCycleMonths.value = state.priceCycleMonths;
-  document.getElementById("priceCycleMonthsRange").value = state.priceCycleMonths;
-
-  UI.halvingAnchor.value = state.halvingAnchor;
+  UI.yearReturn1.value = state.yearReturn1;
+  UI.yearReturn2.value = state.yearReturn2;
+  UI.yearReturn3.value = state.yearReturn3;
+  UI.yearReturn4.value = state.yearReturn4;
+  UI.yearReturn5.value = state.yearReturn5;
 
   UI.unitCapex.value = state.unitCapex;
   document.getElementById("unitCapexRange").value = state.unitCapex;
@@ -2009,7 +2037,7 @@ UI.minerModel.addEventListener("change", ()=>{
   recalc();
 });
 
-["currency","fxRate","minerCount","holdMonths","btcOverride","priceDrift","priceCycleAmp","priceCycleMonths","halvingAnchor","reinvestBtc"].forEach(id=>{
+["currency","fxRate","minerCount","holdMonths","btcOverride","yearReturn1","yearReturn2","yearReturn3","yearReturn4","yearReturn5","reinvestBtc"].forEach(id=>{
   document.getElementById(id).addEventListener("input", recalc);
 });
 [
