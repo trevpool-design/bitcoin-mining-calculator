@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pantheon Mining Calculator v8.2</title>
+  <title>Pantheon Mining Calculator v8.3</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -168,7 +168,81 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       gap:10px;
       align-items:center;
     }
-    input[type="range"]{width:100%}
+    input[type="range"]{
+      width:100%;
+      height:6px;
+      -webkit-appearance:none;
+      appearance:none;
+      background:rgba(35,48,71,.6);
+      border-radius:3px;
+      outline:none;
+      cursor:pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb{
+      -webkit-appearance:none;
+      appearance:none;
+      width:18px;
+      height:18px;
+      background:linear-gradient(135deg, #D4A85A, #C9973B);
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.2);
+      box-shadow:0 2px 6px rgba(0,0,0,.3);
+      cursor:pointer;
+      transition:transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover{
+      transform:scale(1.1);
+      box-shadow:0 3px 10px rgba(212,168,90,.4);
+    }
+    input[type="range"]::-moz-range-thumb{
+      width:18px;
+      height:18px;
+      background:linear-gradient(135deg, #D4A85A, #C9973B);
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.2);
+      box-shadow:0 2px 6px rgba(0,0,0,.3);
+      cursor:pointer;
+    }
+    input[type="range"]::-moz-range-track{
+      height:6px;
+      background:rgba(35,48,71,.6);
+      border-radius:3px;
+    }
+    input[type="range"]:focus::-webkit-slider-thumb{
+      box-shadow:0 0 0 3px rgba(212,168,90,.3);
+    }
+
+    /* Halving Anchor Date - Professional styling */
+    input[type="date"]{
+      width:100%;
+      margin-top:6px;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(212,168,90,.3);
+      background:linear-gradient(135deg, rgba(212,168,90,.08), rgba(15,23,42,.7));
+      color:var(--text);
+      font-size:13px;
+      font-weight:500;
+      outline:none;
+      cursor:pointer;
+      transition:border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    input[type="date"]:hover{
+      border-color:rgba(212,168,90,.5);
+    }
+    input[type="date"]:focus{
+      border-color:rgba(212,168,90,.6);
+      box-shadow:0 0 0 3px rgba(212,168,90,.15);
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator{
+      filter:invert(0.7) sepia(0.5) saturate(2) hue-rotate(10deg);
+      cursor:pointer;
+      opacity:0.7;
+      transition:opacity 0.15s ease;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover{
+      opacity:1;
+    }
     .pill{
       display:inline-flex; gap:6px; align-items:center;
       padding:6px 10px; border-radius:999px;
@@ -447,6 +521,239 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
     .cycle-controls{transition:opacity var(--transition-med), max-height var(--transition-med)}
     .cycle-controls.hidden{opacity:0.4;pointer-events:none}
 
+    /* ===== ENHANCED EXECUTIVE VIEW ===== */
+
+    /* Hero metrics - big impact numbers */
+    .exec-hero{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+      margin-bottom:16px
+    }
+    .hero-metric{
+      background:linear-gradient(135deg, rgba(15,23,42,.8), rgba(22,38,56,.6));
+      border:1px solid rgba(35,48,71,.9);
+      border-radius:var(--radius);
+      padding:20px 16px;
+      text-align:center;
+      position:relative;
+      overflow:hidden
+    }
+    .hero-metric::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      background:linear-gradient(90deg,transparent,var(--accent),transparent);
+      opacity:0;transition:opacity var(--transition-med)
+    }
+    .hero-metric:hover::before{opacity:1}
+    .hero-metric .label{
+      font-size:11px;font-weight:600;
+      color:var(--muted);text-transform:uppercase;
+      letter-spacing:0.5px;margin-bottom:8px
+    }
+    .hero-metric .value{
+      font-size:36px;font-weight:700;
+      font-variant-numeric:tabular-nums;
+      line-height:1;margin-bottom:6px;
+      background:linear-gradient(135deg,var(--text),#a8b5c4);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text
+    }
+    .hero-metric .subtext{
+      font-size:11px;color:var(--muted)
+    }
+    .hero-metric.positive .value{
+      background:linear-gradient(135deg,#34D399,#10B981);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text
+    }
+    .hero-metric.negative .value{
+      background:linear-gradient(135deg,#F87171,#EF4444);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text
+    }
+    .hero-metric.highlight{
+      border-color:rgba(247,147,26,.4);
+      background:linear-gradient(135deg, rgba(247,147,26,.08), rgba(22,38,56,.6))
+    }
+    .hero-metric.highlight .value{
+      background:linear-gradient(135deg,#F7931A,#D9822B);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text
+    }
+
+    /* Investment scorecard */
+    .exec-scorecard{
+      background:rgba(15,23,42,.4);
+      border:1px solid rgba(35,48,71,.8);
+      border-radius:var(--radius);
+      padding:16px;
+      margin-bottom:16px
+    }
+    .scorecard-header{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:14px
+    }
+    .scorecard-header h3{margin:0;font-size:14px;font-weight:600}
+    .scorecard-grade{
+      display:flex;align-items:center;gap:8px;
+      padding:6px 14px;border-radius:20px;
+      font-size:13px;font-weight:700
+    }
+    .scorecard-grade.excellent{background:rgba(52,211,153,.15);color:#34D399;border:1px solid rgba(52,211,153,.3)}
+    .scorecard-grade.good{background:rgba(96,165,250,.15);color:#60A5FA;border:1px solid rgba(96,165,250,.3)}
+    .scorecard-grade.fair{background:rgba(251,191,36,.15);color:#FCD34D;border:1px solid rgba(251,191,36,.3)}
+    .scorecard-grade.poor{background:rgba(248,113,113,.15);color:#F87171;border:1px solid rgba(248,113,113,.3)}
+
+    .scorecard-items{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px
+    }
+    .scorecard-item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;
+      background:rgba(15,23,42,.5);
+      border-radius:10px;
+      border:1px solid rgba(35,48,71,.6)
+    }
+    .scorecard-icon{
+      width:32px;height:32px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;flex-shrink:0
+    }
+    .scorecard-icon.pass{background:rgba(52,211,153,.15);color:#34D399}
+    .scorecard-icon.warn{background:rgba(251,191,36,.15);color:#FCD34D}
+    .scorecard-icon.fail{background:rgba(248,113,113,.15);color:#F87171}
+    .scorecard-text{flex:1;min-width:0}
+    .scorecard-text .title{font-size:11px;color:var(--muted);margin-bottom:2px}
+    .scorecard-text .result{font-size:13px;font-weight:600}
+
+    /* Comparison block */
+    .exec-comparison{
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      gap:12px;
+      align-items:stretch;
+      margin:16px 0
+    }
+    .compare-card{
+      background:rgba(15,23,42,.5);
+      border:1px solid rgba(35,48,71,.8);
+      border-radius:var(--radius);
+      padding:16px;
+      text-align:center;
+      position:relative
+    }
+    .compare-card.winner{
+      border-color:rgba(52,211,153,.4);
+      background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(15,23,42,.5))
+    }
+    .compare-card.winner::after{
+      content:'✓ Better';position:absolute;top:-10px;left:50%;
+      transform:translateX(-50%);
+      padding:3px 10px;border-radius:10px;
+      background:#34D399;color:#0B1C2D;
+      font-size:10px;font-weight:700;text-transform:uppercase
+    }
+    .compare-card .method{
+      font-size:11px;font-weight:600;color:var(--muted);
+      text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px
+    }
+    .compare-card .btc-amount{
+      font-size:24px;font-weight:700;margin-bottom:4px;
+      font-variant-numeric:tabular-nums
+    }
+    .compare-card .btc-label{
+      font-size:11px;color:var(--muted)
+    }
+    .compare-card .fiat-value{
+      font-size:13px;color:var(--muted);margin-top:8px;
+      font-variant-numeric:tabular-nums
+    }
+    .compare-vs{
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:700;color:var(--muted);
+      padding:0 8px
+    }
+
+    /* Advantage callout */
+    .exec-advantage{
+      background:linear-gradient(90deg,rgba(52,211,153,.1),transparent);
+      border-left:3px solid #34D399;
+      padding:12px 16px;
+      margin:14px 0;
+      border-radius:0 var(--radius) var(--radius) 0
+    }
+    .exec-advantage.negative{
+      background:linear-gradient(90deg,rgba(248,113,113,.1),transparent);
+      border-left-color:#F87171
+    }
+    .exec-advantage .adv-label{
+      font-size:10px;font-weight:600;color:var(--muted);
+      text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px
+    }
+    .exec-advantage .adv-value{
+      font-size:18px;font-weight:700
+    }
+    .exec-advantage .adv-value.positive{color:#34D399}
+    .exec-advantage .adv-value.negative{color:#F87171}
+    .exec-advantage .adv-detail{
+      font-size:11px;color:var(--muted);margin-top:4px
+    }
+
+    /* 5-year projection strip */
+    .exec-timeline{
+      display:flex;gap:6px;margin:14px 0
+    }
+    .timeline-year{
+      flex:1;
+      background:rgba(15,23,42,.5);
+      border:1px solid rgba(35,48,71,.6);
+      border-radius:10px;
+      padding:10px 8px;
+      text-align:center
+    }
+    .timeline-year .yr{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px}
+    .timeline-year .btc{font-size:13px;font-weight:700;margin-bottom:2px}
+    .timeline-year .val{font-size:10px;color:var(--muted)}
+    .timeline-year.current{border-color:rgba(247,147,26,.4);background:rgba(247,147,26,.08)}
+
+    /* Key assumptions compact */
+    .exec-assumptions{
+      background:rgba(15,23,42,.3);
+      border:1px solid rgba(35,48,71,.6);
+      border-radius:var(--radius);
+      padding:14px
+    }
+    .exec-assumptions h4{
+      margin:0 0 10px;font-size:12px;font-weight:600;color:var(--muted)
+    }
+    .assumption-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:8px
+    }
+    .assumption-item{
+      font-size:11px;line-height:1.4
+    }
+    .assumption-item .label{color:var(--muted)}
+    .assumption-item .value{font-weight:600;color:var(--text)}
+
+    /* Mobile responsiveness for exec view */
+    @media(max-width:980px){
+      .exec-hero{grid-template-columns:1fr}
+      .hero-metric{padding:16px}
+      .hero-metric .value{font-size:28px}
+      .scorecard-items{grid-template-columns:1fr}
+      .exec-comparison{grid-template-columns:1fr;gap:8px}
+      .compare-vs{padding:8px 0;transform:rotate(90deg)}
+      .assumption-grid{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:600px){
+      .hero-metric .value{font-size:24px}
+      .exec-timeline{flex-wrap:wrap}
+      .timeline-year{flex:1 1 45%}
+      .assumption-grid{grid-template-columns:1fr}
+    }
+
 </style>
 </head>
 
@@ -468,7 +775,7 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       <div class="row" style="align-items:flex-end">
         <div>
           <h2>Investment Calculator</h2>
-          <div class="pill" title="Custom price projections, performance optimized, mobile-ready">v8.2 - custom price projections</div>
+          <div class="pill" title="Custom price projections, performance optimized, mobile-ready">v8.3 - enhanced investor view</div>
         </div>
         <button id="resetBtn" class="btn small danger" title="Reset everything to defaults">Reset</button>
       </div>
@@ -767,54 +1074,129 @@ canvas{background:rgba(15,23,42,.35); border:1px solid rgba(35,48,71,.7); border
       </div>
 
       <section id="executive" class="tab-content active">
-        <h2>Executive View</h2>
-        <div class="note" style="margin:8px 0 12px">
-          A high-level snapshot for investors. Deeper details are available in the other tabs and the assumptions panel.
-        </div>
-
-        <div class="tiles">
-          <div class="tile" title="Internal Rate of Return using terminal BTC value only (excludes ASIC resale), pre-tax">
-            <h3>IRR (BTC only)</h3>
-            <p><span id="execIrr">—</span>%</p>
-</div>
-          <div class="tile" title="Multiple on invested capital using terminal BTC value only (excludes ASIC resale)">
-            <h3>MOIC (BTC only)</h3>
-            <p><span id="execMoic">—</span>x</p>
-</div>
-          <div class="tile" title="First month where cumulative net value turns positive (BTC held × price − capex − cash OPEX)">
-            <h3>Payback (months)</h3>
-            <p><span id="execPayback">—</span></p>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <h2 style="margin:0">Investment Summary</h2>
+          <div class="pill" style="font-size:10px">
+            <span id="execTimestamp">—</span>
           </div>
         </div>
 
-        <div class="tiles">
-          <div class="tile" title="Initial hardware spend (miners × unit cost)">
-            <h3>Initial Capex</h3>
-            <p><span id="execSym1">$</span><span id="execCapex">0</span></p>
+        <!-- Hero Metrics -->
+        <div class="exec-hero">
+          <div class="hero-metric highlight" id="heroMoic" title="Multiple on invested capital using terminal BTC value (excludes ASIC resale)">
+            <div class="label">Return Multiple</div>
+            <div class="value"><span id="execMoic">—</span>x</div>
+            <div class="subtext">MOIC (BTC value only)</div>
           </div>
-          <div class="tile" title="BTC produced in the first 12 months (net of pool fee and uptime)">
-            <h3>BTC Produced (Year 1)</h3>
-            <p><span id="execBtcYr1">0</span></p>
+          <div class="hero-metric" id="heroIrr" title="Annualized Internal Rate of Return, pre-tax">
+            <div class="label">Annualized Return</div>
+            <div class="value"><span id="execIrr">—</span>%</div>
+            <div class="subtext">IRR (pre-tax)</div>
           </div>
-          <div class="tile" title="BTC held at the end (depends on reinvest toggle)">
-            <h3>Ending BTC</h3>
-            <p><span id="execEndingBtc">0</span></p>
+          <div class="hero-metric" id="heroPayback" title="First month where cumulative net value turns positive">
+            <div class="label">Capital Recovery</div>
+            <div class="value"><span id="execPayback">—</span></div>
+            <div class="subtext" id="paybackSubtext">months to payback</div>
           </div>
         </div>
 
-        <h3 class="graph-title">Cumulative Net Value (BTC held × price − capex − cash OPEX)</h3>
+        <!-- Investment Scorecard -->
+        <div class="exec-scorecard">
+          <div class="scorecard-header">
+            <h3>Investment Scorecard</h3>
+            <div class="scorecard-grade" id="overallGrade">
+              <span id="gradeIcon">◉</span>
+              <span id="gradeText">Calculating...</span>
+            </div>
+          </div>
+          <div class="scorecard-items">
+            <div class="scorecard-item">
+              <div class="scorecard-icon" id="scoreMoicIcon">◉</div>
+              <div class="scorecard-text">
+                <div class="title">Return Multiple</div>
+                <div class="result" id="scoreMoicText">—</div>
+              </div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-icon" id="scorePaybackIcon">◉</div>
+              <div class="scorecard-text">
+                <div class="title">Payback Period</div>
+                <div class="result" id="scorePaybackText">—</div>
+              </div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-icon" id="scoreCostIcon">◉</div>
+              <div class="scorecard-text">
+                <div class="title">Cost per BTC</div>
+                <div class="result" id="scoreCostText">—</div>
+              </div>
+            </div>
+            <div class="scorecard-item">
+              <div class="scorecard-icon" id="scoreEdgeIcon">◉</div>
+              <div class="scorecard-text">
+                <div class="title">Mining Advantage</div>
+                <div class="result" id="scoreEdgeText">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mining vs Buying Comparison -->
+        <h3 style="font-size:13px;margin:16px 0 10px">Mining vs. Buying Bitcoin</h3>
+        <div class="exec-comparison">
+          <div class="compare-card" id="miningCard">
+            <div class="method">⛏️ Mining</div>
+            <div class="btc-amount" id="execMiningBtc">0.0000</div>
+            <div class="btc-label">BTC acquired</div>
+            <div class="fiat-value"><span id="execSym1">$</span><span id="execMiningValue">0</span></div>
+          </div>
+          <div class="compare-vs">VS</div>
+          <div class="compare-card" id="buyingCard">
+            <div class="method">💵 DCA Buying</div>
+            <div class="btc-amount" id="execDcaBtc">0.0000</div>
+            <div class="btc-label">BTC acquired</div>
+            <div class="fiat-value"><span id="execSym2">$</span><span id="execDcaValue">0</span></div>
+          </div>
+        </div>
+
+        <!-- Advantage Callout -->
+        <div class="exec-advantage" id="execAdvantage">
+          <div class="adv-label">Mining Advantage</div>
+          <div class="adv-value" id="execAdvValue">+0.0000 BTC</div>
+          <div class="adv-detail" id="execAdvDetail">Same capital → more Bitcoin via mining</div>
+        </div>
+
+        <!-- 5-Year Projection -->
+        <h3 style="font-size:13px;margin:16px 0 10px">5-Year BTC Accumulation</h3>
+        <div class="exec-timeline" id="execTimeline">
+          <div class="timeline-year"><div class="yr">Y1</div><div class="btc">—</div><div class="val">—</div></div>
+          <div class="timeline-year"><div class="yr">Y2</div><div class="btc">—</div><div class="val">—</div></div>
+          <div class="timeline-year"><div class="yr">Y3</div><div class="btc">—</div><div class="val">—</div></div>
+          <div class="timeline-year"><div class="yr">Y4</div><div class="btc">—</div><div class="val">—</div></div>
+          <div class="timeline-year"><div class="yr">Y5</div><div class="btc">—</div><div class="val">—</div></div>
+        </div>
+
+        <!-- Chart -->
+        <h3 class="graph-title" style="margin-top:16px">Cumulative Net Value</h3>
         <div class="chart-box"><canvas id="execNetValueChart"></canvas></div>
 
         <div class="divider"></div>
 
-        <div class="tile" style="min-height:auto">
-          <h3>Key Assumptions (summary)</h3>
-          <div class="muted" id="execAssumpSummary" style="line-height:1.5">
-            —
+        <!-- Key Assumptions -->
+        <div class="exec-assumptions">
+          <h4>Key Assumptions</h4>
+          <div class="assumption-grid" id="execAssumpSummary">
+            <div class="assumption-item"><span class="label">Miners:</span> <span class="value">—</span></div>
+            <div class="assumption-item"><span class="label">Capex:</span> <span class="value">—</span></div>
+            <div class="assumption-item"><span class="label">Power:</span> <span class="value">—</span></div>
+            <div class="assumption-item"><span class="label">Start Price:</span> <span class="value">—</span></div>
+            <div class="assumption-item"><span class="label">Hold Period:</span> <span class="value">—</span></div>
+            <div class="assumption-item"><span class="label">Price Model:</span> <span class="value">—</span></div>
           </div>
-          <div class="note" style="margin-top:10px">
-            Tip: Open <strong>Overview</strong> for full outputs, <strong>Cash Flow</strong> for detailed monthly bridge, and <strong>Sensitivity</strong> for stress tests.
-          </div>
+        </div>
+
+        <div class="note" style="margin-top:12px;text-align:center">
+          Open <strong>Overview</strong> for full outputs • <strong>Cash Flow</strong> for monthly bridge • <strong>Sensitivity</strong> for stress tests
         </div>
       </section>
 
@@ -1463,7 +1845,8 @@ function exportCSV(rows){
 function buildOnePagerHtml(){
   const out = model();
   const sym = symbolFor(state.currency);
-  const ts = new Date().toLocaleString();
+  const ts = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
 
   // Try to embed the executive net value chart as an image
   let chartImg = "";
@@ -1474,100 +1857,580 @@ function buildOnePagerHtml(){
     }
   }catch(e){ /* ignore */ }
 
-  const irrStr = out.irrANoResale === null ? "-" : `${fmtNum(out.irrANoResale*100,1)}%`;
-  const irrResaleStr = out.irrA === null ? "-" : `${fmtNum(out.irrA*100,1)}%`;
-  const moicStr = `${fmtNum(out.moicNoResale,2)}x`;
-  const moicResaleStr = `${fmtNum(out.moic,2)}x`;
+  const irrVal = out.irrANoResale;
+  const irrStr = irrVal === null ? "—" : `${fmtNum(irrVal*100,1)}%`;
+  const moicVal = out.moicNoResale;
+  const moicStr = `${fmtNum(moicVal,2)}x`;
+  const paybackMonths = document.getElementById("execPayback")?.textContent || "—";
+
+  // Calculate DCA comparison (same logic as recalc)
+  let dcaBTC = 0;
+  if(out.prices[0] > 0){
+    dcaBTC += out.capex / out.prices[0];
+  }
+  for(let i = 0; i < out.rows.length; i++){
+    const r = out.rows[i];
+    const outOfPocket = r.NetCashUSD < 0 ? Math.abs(r.NetCashUSD) : 0;
+    if(outOfPocket > 0 && out.prices[i] > 0){
+      dcaBTC += outOfPocket / out.prices[i];
+    }
+  }
+  const miningAdvantage = out.endingBTC - dcaBTC;
+  const advPct = dcaBTC > 0 ? ((out.endingBTC / dcaBTC - 1) * 100) : 0;
+
+  // Cost per BTC
+  const costPerBtc = out.endingBTC > 0 ? (out.capex + out.totalOpex) / out.endingBTC : 0;
+
+  // Determine grade
+  let grade = 'Review';
+  let gradeColor = '#94A3B8';
+  if (moicVal >= 1.5 && paybackMonths !== "—" && parseInt(paybackMonths) <= 36) {
+    grade = 'Excellent';
+    gradeColor = '#10B981';
+  } else if (moicVal >= 1.2) {
+    grade = 'Good';
+    gradeColor = '#3B82F6';
+  } else if (moicVal >= 1.0) {
+    grade = 'Fair';
+    gradeColor = '#F59E0B';
+  }
+
+  // Price model description
+  let priceModelDesc = '';
+  if (state.priceModel === 'custom') {
+    const preset = state.pricePreset !== 'custom' ? state.pricePreset.charAt(0).toUpperCase() + state.pricePreset.slice(1) : 'Custom';
+    priceModelDesc = `Custom Annual (${preset})`;
+  } else {
+    priceModelDesc = `Cycle Model: ${state.priceDrift > 0 ? '+' : ''}${state.priceDrift.toFixed(0)}%/yr drift`;
+  }
+
+  // 5-year BTC accumulation
+  const yearlyBtc = [];
+  for (let yr = 1; yr <= 5; yr++) {
+    const endMonth = Math.min(yr * 12, out.rows.length);
+    const btc = out.rows.slice(0, endMonth).reduce((a, r) => a + (Number(r.NetBTC) || 0), 0);
+    const price = endMonth <= out.prices.length ? out.prices[endMonth - 1] : out.prices[out.prices.length - 1];
+    yearlyBtc.push({ yr, btc, value: btc * price });
+  }
 
   return `<!doctype html>
 <html><head><meta charset="utf-8">
 <title>Pantheon Mining - Investment Snapshot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; margin:28px; color:#0b1220}
-  .top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}
-  .brand{font-weight:800; font-size:18px; letter-spacing:.2px}
-  .muted{color:#526178; font-size:12px}
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px}
-  .card{border:1px solid rgba(15,23,42,.14); border-radius:14px; padding:12px 14px}
-  .k{font-size:12px; color:#526178; margin-bottom:6px}
-  .v{font-size:20px; font-weight:800}
-  .sub{margin-top:6px; font-size:12px; color:#526178}
-  h2{margin:18px 0 10px; font-size:14px; letter-spacing:.2px}
-  table{width:100%; border-collapse:collapse; font-size:12px}
-  th,td{padding:8px 8px; border-bottom:1px solid rgba(15,23,42,.10); text-align:right}
-  th:first-child, td:first-child{text-align:left}
-  .hr{height:1px; background:rgba(15,23,42,.12); margin:16px 0}
-  img{max-width:100%; border-radius:14px; border:1px solid rgba(15,23,42,.12)}
-  @media print{body{margin:16px}}
+  :root {
+    --bg-dark: #0B1C2D;
+    --bg-card: #162638;
+    --gold: #D4A85A;
+    --gold-light: #E8C88B;
+    --text: #F5F7FA;
+    --muted: #8A95A3;
+    --success: #10B981;
+    --border: rgba(212,168,90,.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0B1C2D 0%, #0F2438 50%, #0B1C2D 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--bg-dark);
+  }
+  .logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .logo-sub {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .header-right {
+    text-align: right;
+  }
+  .header-right .project {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header-right .details {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .header-right .timestamp {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    opacity: 0.7;
+  }
+
+  /* Grade Badge */
+  .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+  }
+
+  /* Hero Section */
+  .hero {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .hero-card {
+    background: linear-gradient(135deg, rgba(22,38,56,.9), rgba(15,30,43,.8));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .hero-card.highlight {
+    border-color: rgba(212,168,90,.4);
+    background: linear-gradient(135deg, rgba(212,168,90,.1), rgba(15,30,43,.8));
+  }
+  .hero-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+  .hero-value {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--text), #B8C5D3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-card.highlight .hero-value {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-card.positive .hero-value {
+    background: linear-gradient(135deg, #34D399, #10B981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* Comparison Cards */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 24px;
+  }
+  .compare-card {
+    background: rgba(22,38,56,.6);
+    border: 1px solid rgba(35,48,71,.8);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .compare-card.winner {
+    border-color: rgba(16,185,129,.4);
+    background: linear-gradient(135deg, rgba(16,185,129,.1), rgba(22,38,56,.6));
+  }
+  .compare-method {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .compare-btc {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .compare-card.winner .compare-btc {
+    color: var(--success);
+  }
+  .compare-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .compare-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* Advantage Banner */
+  .advantage-banner {
+    background: linear-gradient(90deg, rgba(16,185,129,.15), transparent);
+    border-left: 3px solid var(--success);
+    padding: 14px 18px;
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 24px;
+  }
+  .advantage-banner.negative {
+    background: linear-gradient(90deg, rgba(239,68,68,.15), transparent);
+    border-left-color: #EF4444;
+  }
+  .advantage-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .advantage-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--success);
+    margin-top: 4px;
+  }
+  .advantage-banner.negative .advantage-value {
+    color: #EF4444;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: rgba(22,38,56,.5);
+    border: 1px solid rgba(35,48,71,.6);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* Timeline */
+  .timeline {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .timeline-year {
+    flex: 1;
+    background: rgba(22,38,56,.5);
+    border: 1px solid rgba(35,48,71,.6);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .timeline-yr {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .timeline-btc {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .timeline-val {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* Chart */
+  .chart-container {
+    background: rgba(15,23,42,.4);
+    border: 1px solid rgba(35,48,71,.6);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  .chart-container img {
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  /* Key Drivers Table */
+  .drivers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 24px;
+  }
+  .drivers-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(35,48,71,.4);
+  }
+  .drivers-table td:first-child {
+    color: var(--muted);
+    width: 60%;
+  }
+  .drivers-table td:last-child {
+    text-align: right;
+    font-weight: 600;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .footer-risks {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .footer-disclaimer {
+    font-size: 10px;
+    color: var(--muted);
+    opacity: 0.6;
+    text-align: center;
+  }
+
+  /* Print Styles */
+  @media print {
+    body {
+      background: white;
+      color: #1a1a2e;
+      padding: 20px;
+    }
+    .hero-card, .stat-card, .compare-card, .timeline-year, .chart-container {
+      background: #f8f9fa;
+      border-color: #e5e7eb;
+    }
+    .hero-value, .hero-card.highlight .hero-value, .hero-card.positive .hero-value {
+      background: none;
+      -webkit-text-fill-color: #1a1a2e;
+      color: #1a1a2e;
+    }
+    .section-title { color: #D4A85A; }
+    .hero-label, .stat-label, .compare-method, .compare-label, .hero-sub { color: #6b7280; }
+    .advantage-banner { background: #f0fdf4; }
+    .advantage-banner.negative { background: #fef2f2; }
+  }
 </style>
 </head>
 <body>
-  <div class="top">
-    <div>
-      <div class="brand">Pantheon Mining - Investment Snapshot</div>
-      <div class="muted">As of ${ts} - Scenario: ${state.scenario.toUpperCase()} - Hold: ${state.holdMonths} months - Investor metrics exclude resale by default</div>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">P</div>
+        <div>
+          <div class="logo-text">Pantheon Mining</div>
+          <div class="logo-sub">Investment Snapshot</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="project">${state.project || 'Mining Operation'}</div>
+        <div class="details">${state.minerCount.toLocaleString()} miners · ${state.holdMonths} month hold</div>
+        <div class="timestamp">Generated ${ts} at ${timeStr}</div>
+      </div>
     </div>
-    <div class="muted" style="text-align:right">
-      <div>${state.project}</div>
-      <div>${state.minerCount.toLocaleString()} - ${state.minerModel.toUpperCase()}</div>
-    </div>
-  </div>
 
-  <div class="grid">
-    <div class="card">
-      <div class="k">Total Capex</div>
-      <div class="v">${sym}${fmtMoney(toDisplay(out.capex), state.currency)}</div>
-      <div class="sub">Miners - unit cost</div>
+    <!-- Grade Badge -->
+    <div class="grade-badge" style="background:${gradeColor}22; color:${gradeColor}; border:1px solid ${gradeColor}44">
+      <span>●</span> Investment Grade: ${grade}
     </div>
-    <div class="card">
-      <div class="k">IRR (BTC only)</div>
-      <div class="v">${irrStr}</div>
-    </div>
-    <div class="card">
-      <div class="k">MOIC (BTC only)</div>
-      <div class="v">${moicStr}</div>
-    </div>
-    <div class="card">
-      <div class="k">Payback (months)</div>
-      <div class="v">${document.getElementById("execPayback")?.textContent || "-"}</div>
-      <div class="sub">Cumulative net value turns positive</div>
-    </div>
-    <div class="card">
-      <div class="k">Ending BTC</div>
-      <div class="v">${fmtNum(out.endingBTC,4)}</div>
-      <div class="sub">Depends on reinvest toggle</div>
-    </div>
-    <div class="card">
-      <div class="k">Ending Value</div>
-      <div class="v">${sym}${fmtMoney(toDisplay(out.endingValueUSD), state.currency)}</div>
-      <div class="sub">BTC held - exit price</div>
-    </div>
-  </div>
 
-  <h2>Key Drivers</h2>
-  <table>
-    <tbody>
-      <tr><td>BTC Spot (USD)</td><td>${sym}${Math.round(toDisplay(getBtcPriceUSD())).toLocaleString()}</td></tr>
-      <tr><td>Power Cost</td><td>${sym}${fmtMoney(toDisplay(state.powerCost), state.currency)} / kWh</td></tr>
-      <tr><td>Uptime</td><td>${fmtNum(state.uptime,1)}%</td></tr>
-      <tr><td>All-in Fees (pool+hosting+mgmt+ins+repairs)</td><td>${fmtNum(state.poolFee+state.hostingFee+state.managementFee+state.insuranceFee+state.repairReserve,2)}%</td></tr>
-      <tr><td>Difficulty Growth (annualized)</td><td>${fmtNum(state.difficultyGrowth,1)}%</td></tr>
-      <tr><td>Price Drift (annual)</td><td>${fmtNum(state.priceDrift,1)}%</td></tr>
-      <tr><td>Cycle Amplitude</td><td>+/-${fmtNum(state.priceCycleAmp,0)}%</td></tr>
-    </tbody>
-  </table>
+    <!-- Hero Metrics -->
+    <div class="hero">
+      <div class="hero-card highlight">
+        <div class="hero-label">Return Multiple</div>
+        <div class="hero-value">${moicStr}</div>
+        <div class="hero-sub">MOIC (BTC value only)</div>
+      </div>
+      <div class="hero-card${irrVal !== null && irrVal >= 0.15 ? ' positive' : ''}">
+        <div class="hero-label">Annualized Return</div>
+        <div class="hero-value">${irrStr}</div>
+        <div class="hero-sub">IRR (pre-tax)</div>
+      </div>
+      <div class="hero-card${paybackMonths !== '—' && parseInt(paybackMonths) <= 30 ? ' positive' : ''}">
+        <div class="hero-label">Capital Recovery</div>
+        <div class="hero-value">${paybackMonths}</div>
+        <div class="hero-sub">months to payback</div>
+      </div>
+    </div>
 
-  <div class="hr"></div>
+    <!-- Mining vs Buying -->
+    <div class="section-title">Mining vs. Buying Comparison</div>
+    <div class="comparison">
+      <div class="compare-card${out.endingBTC > dcaBTC ? ' winner' : ''}">
+        <div class="compare-method">⛏️ Mining</div>
+        <div class="compare-btc">${fmtNum(out.endingBTC, 4)}</div>
+        <div class="compare-label">BTC acquired</div>
+      </div>
+      <div class="compare-vs">VS</div>
+      <div class="compare-card${dcaBTC > out.endingBTC ? ' winner' : ''}">
+        <div class="compare-method">💵 DCA Buying</div>
+        <div class="compare-btc">${fmtNum(dcaBTC, 4)}</div>
+        <div class="compare-label">BTC acquired</div>
+      </div>
+    </div>
 
-  <h2>Net Value Curve</h2>
-  ${chartImg ? `<img src="${chartImg}" alt="Net Value Chart">` : `<div class="muted">Chart unavailable in this browser context.</div>`}
+    <!-- Advantage Banner -->
+    <div class="advantage-banner${miningAdvantage < 0 ? ' negative' : ''}">
+      <div class="advantage-label">Mining ${miningAdvantage >= 0 ? 'Advantage' : 'Disadvantage'}</div>
+      <div class="advantage-value">${miningAdvantage >= 0 ? '+' : ''}${fmtNum(miningAdvantage, 4)} BTC (${advPct >= 0 ? '+' : ''}${fmtNum(advPct, 1)}%)</div>
+    </div>
 
-  <div class="hr"></div>
+    <!-- Key Stats -->
+    <div class="section-title">Investment Summary</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Capex</div>
+        <div class="stat-value">${sym}${fmtMoney(toDisplay(out.capex), state.currency)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cost per BTC</div>
+        <div class="stat-value">${sym}${fmtMoney(toDisplay(costPerBtc), state.currency)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ending BTC</div>
+        <div class="stat-value">${fmtNum(out.endingBTC, 4)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ending Value</div>
+        <div class="stat-value">${sym}${fmtMoney(toDisplay(out.endingValueUSD), state.currency)}</div>
+      </div>
+    </div>
 
-  <h2>Risks (summary)</h2>
-  <div class="muted" style="line-height:1.5">
-    Bitcoin price volatility; network difficulty changes; downtime and hardware failure; hosting/power counterparty risk; regulatory and tax uncertainty.
-    This is a simplified, pre-tax model for illustrative purposes only.
+    <!-- 5-Year Timeline -->
+    <div class="section-title">5-Year BTC Accumulation</div>
+    <div class="timeline">
+      ${yearlyBtc.map(y => `
+        <div class="timeline-year">
+          <div class="timeline-yr">Year ${y.yr}</div>
+          <div class="timeline-btc">${fmtNum(y.btc, 3)}</div>
+          <div class="timeline-val">${sym}${fmtMoney(toDisplay(y.value), state.currency)}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Chart -->
+    ${chartImg ? `
+    <div class="section-title">Net Value Projection</div>
+    <div class="chart-container">
+      <img src="${chartImg}" alt="Net Value Chart">
+    </div>
+    ` : ''}
+
+    <!-- Key Drivers -->
+    <div class="section-title">Model Assumptions</div>
+    <table class="drivers-table">
+      <tbody>
+        <tr><td>Starting BTC Price</td><td>${sym}${Math.round(toDisplay(getBtcPriceUSD())).toLocaleString()}</td></tr>
+        <tr><td>Price Model</td><td>${priceModelDesc}</td></tr>
+        <tr><td>Power Cost</td><td>${sym}${state.powerCost.toFixed(3)} / kWh</td></tr>
+        <tr><td>Difficulty Growth (annual)</td><td>${fmtNum(state.difficultyGrowth, 1)}%</td></tr>
+        <tr><td>Uptime</td><td>${fmtNum(state.uptime, 1)}%</td></tr>
+        <tr><td>All-in Fees</td><td>${fmtNum(state.poolFee + state.hostingFee + state.managementFee + state.insuranceFee + state.repairReserve, 2)}%</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-risks">
+        <strong style="color:var(--gold)">Risk Factors:</strong> Bitcoin price volatility · Network difficulty changes · Downtime and hardware failure · Hosting/power counterparty risk · Regulatory and tax uncertainty
+      </div>
+      <div class="footer-disclaimer">
+        This is a simplified, pre-tax model for illustrative purposes only. Past performance does not guarantee future results. All projections are scenario-based estimates and should not be construed as investment advice. © ${new Date().getFullYear()} Pantheon Mining
+      </div>
+    </div>
   </div>
 </body></html>`;
 }
@@ -1950,6 +2813,7 @@ function model(){
     irrA,
     irrANoResale,
     cumulativeRevenue, cumulativeCosts, cumulativeNet,
+    totalOpex: cumulativeOpex,
   };
 }
 
@@ -1998,70 +2862,47 @@ function render(modelOut){
   UI.irr.textContent = modelOut.irrA === null ? "—" : fmtNum(modelOut.irrA*100, 1);
 
     
-  // --- Executive View KPIs ---
-  const execIrr = document.getElementById("execIrr");
-  const execMoic = document.getElementById("execMoic");
-  const execPayback = document.getElementById("execPayback");
-  const execCapex = document.getElementById("execCapex");
-  const execBtcYr1 = document.getElementById("execBtcYr1");
-  const execEndingBtc = document.getElementById("execEndingBtc");
-  const execAssumpSummary = document.getElementById("execAssumpSummary");
-  const execSym1 = document.getElementById("execSym1");
+  // --- Enhanced Executive View ---
+  updateExecutiveView(modelOut, sym, dcaBTC, dcaValue);
 
-  if(execSym1) execSym1.textContent = sym;
-
-  if(execIrr) execIrr.textContent = modelOut.irrANoResale === null ? "—" : fmtNum(modelOut.irrANoResale*100, 1);
-  if(execMoic) execMoic.textContent = fmtNum(modelOut.moicNoResale, 2);
-  if(execEndingBtc) execEndingBtc.textContent = fmtNum(modelOut.endingBTC, 4);
-  if(execCapex) execCapex.textContent = fmtMoney(toDisplay(modelOut.capex), state.currency);
-
-  // BTC produced Year 1 (net BTC)
-  if(execBtcYr1){
-    const n = Math.min(12, modelOut.rows.length);
-    const btcYr1 = modelOut.rows.slice(0, n).reduce((a,r)=>a + (Number(r.NetBTC)||0), 0);
-    execBtcYr1.textContent = fmtNum(btcYr1, 4);
-  }
-
-  // Payback: first month where net value >= 0
-  if(execPayback){
-    const idx = modelOut.rows.findIndex(r => Number.isFinite(r.NetValueUSD) && r.NetValueUSD >= 0);
-    execPayback.textContent = idx === -1 ? "—" : String(idx+1);
-  }
-
-  // Assumption summary (compact)
-  if(execAssumpSummary){
-    const basePriceDisp = Math.round(toDisplay(getBtcPriceUSD())).toLocaleString();
-
-    // Build price model description
-    let priceModelDesc = '';
-    if (state.priceModel === 'custom') {
-      const preset = state.pricePreset !== 'custom' ? ` (${state.pricePreset})` : '';
-      priceModelDesc = `<div><strong>Price Model:</strong> Custom Annual${preset} - Y1: ${state.priceY1}%, Y2: ${state.priceY2}%, Y3: ${state.priceY3}%, Y4: ${state.priceY4}%, Y5: ${state.priceY5}%</div>`;
-    } else {
-      priceModelDesc = `<div><strong>Price Model:</strong> Cycle - ${state.priceDrift.toFixed(1)}%/yr drift, ±${state.priceCycleAmp.toFixed(0)}% amplitude</div>`;
-    }
-
-    execAssumpSummary.innerHTML = `
-      <div><strong>Miners:</strong> ${state.minerCount.toLocaleString()} × ${UI.minerModel.options[UI.minerModel.selectedIndex].text}</div>
-      <div><strong>Unit Cost:</strong> ${sym}${Math.round(toDisplay(state.unitCapex)).toLocaleString()} - <strong>Power:</strong> ${state.powerCost.toFixed(3)} USD/kWh</div>
-      <div><strong>Uptime:</strong> ${state.uptime.toFixed(1)}% - <strong>Pool Fee:</strong> ${state.poolFee.toFixed(1)}%</div>
-      <div><strong>Network Hash:</strong> ${Math.round(state.networkHashrateEH).toLocaleString()} EH/s - <strong>Difficulty Growth:</strong> ${state.difficultyGrowth.toFixed(1)}%/yr</div>
-      <div><strong>Start BTC Price:</strong> ${sym}${basePriceDisp} - <strong>Hold Period:</strong> ${state.holdMonths} months</div>
-      ${priceModelDesc}
-    `;
-  }
-
-  // Executive Chart: Cumulative Net Value
+  // Executive Chart: Cumulative Net Value with gradient fill
   const execCanvas = document.getElementById("execNetValueChart");
   if(execCanvas && window.Chart){
     const labelsExec = modelOut.rows.map(r => r.Month);
     const netValueSeries = modelOut.rows.map(r => toDisplay(r.NetValueUSD));
+    const finalValue = netValueSeries[netValueSeries.length - 1] || 0;
+    const isPositive = finalValue >= 0;
+
+    // Create gradient
+    const ctx = execCanvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+    if (isPositive) {
+      gradient.addColorStop(0, 'rgba(52, 211, 153, 0.3)');
+      gradient.addColorStop(1, 'rgba(52, 211, 153, 0)');
+    } else {
+      gradient.addColorStop(0, 'rgba(248, 113, 113, 0.3)');
+      gradient.addColorStop(1, 'rgba(248, 113, 113, 0)');
+    }
+
+    const lineColor = isPositive ? '#34D399' : '#F87171';
+
     if(!execNetValueChart){
       execNetValueChart = new Chart(execCanvas, {
         type:"line",
         data:{
           labels: labelsExec,
-          datasets:[{ label:"Cumulative Net Value", data: netValueSeries, borderWidth:2, pointRadius:0, tension:.25 }]
+          datasets:[{
+            label:"Cumulative Net Value",
+            data: netValueSeries,
+            borderWidth:2,
+            borderColor: lineColor,
+            backgroundColor: gradient,
+            fill: true,
+            pointRadius:0,
+            pointHoverRadius:4,
+            pointHoverBackgroundColor: lineColor,
+            tension:.3
+          }]
         },
         options:{
           responsive:true,
@@ -2069,19 +2910,40 @@ function render(modelOut){
           interaction:{mode:"index", intersect:false},
           plugins:{
             legend:{display:false},
-            tooltip:{callbacks:{
-              label:(ctx)=> `${sym}${Math.round(Number(ctx.raw||0)).toLocaleString()}`
-            }}
+            tooltip:{
+              backgroundColor:'rgba(11,28,45,.95)',
+              borderColor:'rgba(35,48,71,.8)',
+              borderWidth:1,
+              titleColor:'#9ca3af',
+              bodyColor:'#f5f7fa',
+              padding:10,
+              cornerRadius:8,
+              callbacks:{
+                label:(ctx)=> `Net Value: ${sym}${Math.round(Number(ctx.raw||0)).toLocaleString()}`
+              }
+            }
           },
           scales:{
-            x:{ticks:{color:"#9ca3af"}, grid:{color:"rgba(35,48,71,.35)"}},
-            y:{ticks:{color:"#9ca3af", callback:(v)=>`${sym}${Number(v).toLocaleString()}`}, grid:{color:"rgba(35,48,71,.35)"}}
+            x:{ticks:{color:"#6b7280", maxTicksLimit:12}, grid:{color:"rgba(35,48,71,.25)"}},
+            y:{ticks:{color:"#6b7280", callback:(v)=>`${sym}${Number(v).toLocaleString()}`}, grid:{color:"rgba(35,48,71,.25)"}}
           }
         }
       });
     }else{
+      // Update gradient based on current values
+      const newGradient = ctx.createLinearGradient(0, 0, 0, 260);
+      if (isPositive) {
+        newGradient.addColorStop(0, 'rgba(52, 211, 153, 0.3)');
+        newGradient.addColorStop(1, 'rgba(52, 211, 153, 0)');
+      } else {
+        newGradient.addColorStop(0, 'rgba(248, 113, 113, 0.3)');
+        newGradient.addColorStop(1, 'rgba(248, 113, 113, 0)');
+      }
       execNetValueChart.data.labels = labelsExec;
       execNetValueChart.data.datasets[0].data = netValueSeries;
+      execNetValueChart.data.datasets[0].borderColor = lineColor;
+      execNetValueChart.data.datasets[0].backgroundColor = newGradient;
+      execNetValueChart.data.datasets[0].pointHoverBackgroundColor = lineColor;
       execNetValueChart.update();
     }
   }
@@ -2579,6 +3441,292 @@ function setMinerModelDefaults(){
 
   UI.unitCapex.value = c;
   document.getElementById("unitCapexRange").value = c;
+}
+
+// --- Enhanced Executive View Update Function ---
+function updateExecutiveView(modelOut, sym, dcaBTC, dcaValue) {
+  const months = state.holdMonths;
+  const endPrice = modelOut.prices[months - 1];
+
+  // Timestamp
+  const execTimestamp = document.getElementById("execTimestamp");
+  if (execTimestamp) {
+    execTimestamp.textContent = new Date().toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  // Currency symbols
+  const symEls = ['execSym1', 'execSym2'];
+  symEls.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = sym;
+  });
+
+  // --- Hero Metrics ---
+  const moicVal = modelOut.moicNoResale;
+  const irrVal = modelOut.irrANoResale;
+  const paybackIdx = modelOut.rows.findIndex(r => Number.isFinite(r.NetValueUSD) && r.NetValueUSD >= 0);
+  const paybackMonths = paybackIdx === -1 ? null : paybackIdx + 1;
+
+  // MOIC
+  const execMoic = document.getElementById("execMoic");
+  const heroMoic = document.getElementById("heroMoic");
+  if (execMoic) execMoic.textContent = fmtNum(moicVal, 2);
+  if (heroMoic) {
+    heroMoic.classList.remove('positive', 'negative');
+    if (moicVal >= 1.5) heroMoic.classList.add('positive');
+    else if (moicVal < 1.0) heroMoic.classList.add('negative');
+  }
+
+  // IRR
+  const execIrr = document.getElementById("execIrr");
+  const heroIrr = document.getElementById("heroIrr");
+  if (execIrr) execIrr.textContent = irrVal === null ? "—" : fmtNum(irrVal * 100, 1);
+  if (heroIrr) {
+    heroIrr.classList.remove('positive', 'negative');
+    if (irrVal !== null) {
+      if (irrVal >= 0.20) heroIrr.classList.add('positive');
+      else if (irrVal < 0) heroIrr.classList.add('negative');
+    }
+  }
+
+  // Payback
+  const execPayback = document.getElementById("execPayback");
+  const heroPayback = document.getElementById("heroPayback");
+  const paybackSubtext = document.getElementById("paybackSubtext");
+  if (execPayback) execPayback.textContent = paybackMonths === null ? "—" : String(paybackMonths);
+  if (paybackSubtext) {
+    if (paybackMonths === null) {
+      paybackSubtext.textContent = "not achieved";
+    } else if (paybackMonths <= 24) {
+      paybackSubtext.textContent = `months (${(paybackMonths / 12).toFixed(1)} yrs)`;
+    } else {
+      paybackSubtext.textContent = `months (${(paybackMonths / 12).toFixed(1)} yrs)`;
+    }
+  }
+  if (heroPayback) {
+    heroPayback.classList.remove('positive', 'negative');
+    if (paybackMonths !== null && paybackMonths <= 24) heroPayback.classList.add('positive');
+    else if (paybackMonths === null) heroPayback.classList.add('negative');
+  }
+
+  // --- Investment Scorecard ---
+  const costPerBtc = modelOut.endingBTC > 0 ? (modelOut.capex + modelOut.totalOpex) / modelOut.endingBTC : 0;
+  const miningAdvantage = modelOut.endingBTC - dcaBTC;
+  const miningAdvPct = dcaBTC > 0 ? ((modelOut.endingBTC / dcaBTC) - 1) * 100 : 0;
+
+  // Score calculations
+  let scoreCount = 0;
+  let passCount = 0;
+
+  // MOIC score
+  const scoreMoicIcon = document.getElementById("scoreMoicIcon");
+  const scoreMoicText = document.getElementById("scoreMoicText");
+  if (scoreMoicIcon && scoreMoicText) {
+    scoreCount++;
+    if (moicVal >= 1.5) {
+      scoreMoicIcon.className = 'scorecard-icon pass';
+      scoreMoicIcon.textContent = '✓';
+      scoreMoicText.textContent = `${fmtNum(moicVal, 2)}x — Strong`;
+      passCount++;
+    } else if (moicVal >= 1.0) {
+      scoreMoicIcon.className = 'scorecard-icon warn';
+      scoreMoicIcon.textContent = '●';
+      scoreMoicText.textContent = `${fmtNum(moicVal, 2)}x — Moderate`;
+      passCount += 0.5;
+    } else {
+      scoreMoicIcon.className = 'scorecard-icon fail';
+      scoreMoicIcon.textContent = '✗';
+      scoreMoicText.textContent = `${fmtNum(moicVal, 2)}x — Below target`;
+    }
+  }
+
+  // Payback score
+  const scorePaybackIcon = document.getElementById("scorePaybackIcon");
+  const scorePaybackText = document.getElementById("scorePaybackText");
+  if (scorePaybackIcon && scorePaybackText) {
+    scoreCount++;
+    if (paybackMonths !== null && paybackMonths <= 24) {
+      scorePaybackIcon.className = 'scorecard-icon pass';
+      scorePaybackIcon.textContent = '✓';
+      scorePaybackText.textContent = `${paybackMonths} mo — Within 2 years`;
+      passCount++;
+    } else if (paybackMonths !== null && paybackMonths <= 36) {
+      scorePaybackIcon.className = 'scorecard-icon warn';
+      scorePaybackIcon.textContent = '●';
+      scorePaybackText.textContent = `${paybackMonths} mo — Extended`;
+      passCount += 0.5;
+    } else {
+      scorePaybackIcon.className = 'scorecard-icon fail';
+      scorePaybackIcon.textContent = '✗';
+      scorePaybackText.textContent = paybackMonths ? `${paybackMonths} mo — Long` : 'Not achieved';
+    }
+  }
+
+  // Cost per BTC score
+  const scoreCostIcon = document.getElementById("scoreCostIcon");
+  const scoreCostText = document.getElementById("scoreCostText");
+  const currentPrice = getBtcPriceUSD();
+  if (scoreCostIcon && scoreCostText) {
+    scoreCount++;
+    const costRatio = costPerBtc / currentPrice;
+    if (costRatio < 0.5) {
+      scoreCostIcon.className = 'scorecard-icon pass';
+      scoreCostIcon.textContent = '✓';
+      scoreCostText.textContent = `${sym}${fmtMoney(toDisplay(costPerBtc), state.currency)} — Excellent`;
+      passCount++;
+    } else if (costRatio < 0.75) {
+      scoreCostIcon.className = 'scorecard-icon warn';
+      scoreCostIcon.textContent = '●';
+      scoreCostText.textContent = `${sym}${fmtMoney(toDisplay(costPerBtc), state.currency)} — Moderate`;
+      passCount += 0.5;
+    } else {
+      scoreCostIcon.className = 'scorecard-icon fail';
+      scoreCostIcon.textContent = '✗';
+      scoreCostText.textContent = `${sym}${fmtMoney(toDisplay(costPerBtc), state.currency)} — High`;
+    }
+  }
+
+  // Mining advantage score
+  const scoreEdgeIcon = document.getElementById("scoreEdgeIcon");
+  const scoreEdgeText = document.getElementById("scoreEdgeText");
+  if (scoreEdgeIcon && scoreEdgeText) {
+    scoreCount++;
+    if (miningAdvPct > 20) {
+      scoreEdgeIcon.className = 'scorecard-icon pass';
+      scoreEdgeIcon.textContent = '✓';
+      scoreEdgeText.textContent = `+${fmtNum(miningAdvPct, 0)}% vs buying`;
+      passCount++;
+    } else if (miningAdvPct > 0) {
+      scoreEdgeIcon.className = 'scorecard-icon warn';
+      scoreEdgeIcon.textContent = '●';
+      scoreEdgeText.textContent = `+${fmtNum(miningAdvPct, 1)}% vs buying`;
+      passCount += 0.5;
+    } else {
+      scoreEdgeIcon.className = 'scorecard-icon fail';
+      scoreEdgeIcon.textContent = '✗';
+      scoreEdgeText.textContent = `${fmtNum(miningAdvPct, 1)}% vs buying`;
+    }
+  }
+
+  // Overall grade
+  const overallGrade = document.getElementById("overallGrade");
+  const gradeIcon = document.getElementById("gradeIcon");
+  const gradeText = document.getElementById("gradeText");
+  if (overallGrade && gradeIcon && gradeText) {
+    const scorePct = scoreCount > 0 ? passCount / scoreCount : 0;
+    overallGrade.className = 'scorecard-grade';
+    if (scorePct >= 0.85) {
+      overallGrade.classList.add('excellent');
+      gradeIcon.textContent = '★';
+      gradeText.textContent = 'Excellent';
+    } else if (scorePct >= 0.6) {
+      overallGrade.classList.add('good');
+      gradeIcon.textContent = '●';
+      gradeText.textContent = 'Good';
+    } else if (scorePct >= 0.35) {
+      overallGrade.classList.add('fair');
+      gradeIcon.textContent = '◐';
+      gradeText.textContent = 'Fair';
+    } else {
+      overallGrade.classList.add('poor');
+      gradeIcon.textContent = '○';
+      gradeText.textContent = 'Review Needed';
+    }
+  }
+
+  // --- Mining vs Buying Comparison ---
+  const miningBtcEl = document.getElementById("execMiningBtc");
+  const miningValueEl = document.getElementById("execMiningValue");
+  const dcaBtcEl = document.getElementById("execDcaBtc");
+  const dcaValueEl = document.getElementById("execDcaValue");
+  const miningCard = document.getElementById("miningCard");
+  const buyingCard = document.getElementById("buyingCard");
+
+  if (miningBtcEl) miningBtcEl.textContent = fmtNum(modelOut.endingBTC, 4);
+  if (miningValueEl) miningValueEl.textContent = fmtMoney(toDisplay(modelOut.endingBTC * endPrice), state.currency);
+  if (dcaBtcEl) dcaBtcEl.textContent = fmtNum(dcaBTC, 4);
+  if (dcaValueEl) dcaValueEl.textContent = fmtMoney(toDisplay(dcaValue), state.currency);
+
+  if (miningCard && buyingCard) {
+    miningCard.classList.remove('winner');
+    buyingCard.classList.remove('winner');
+    if (modelOut.endingBTC > dcaBTC) {
+      miningCard.classList.add('winner');
+    } else if (dcaBTC > modelOut.endingBTC) {
+      buyingCard.classList.add('winner');
+    }
+  }
+
+  // --- Advantage Callout ---
+  const execAdvantage = document.getElementById("execAdvantage");
+  const execAdvValue = document.getElementById("execAdvValue");
+  const execAdvDetail = document.getElementById("execAdvDetail");
+
+  if (execAdvantage && execAdvValue && execAdvDetail) {
+    const advBtc = modelOut.endingBTC - dcaBTC;
+    const advValue = (modelOut.endingBTC * endPrice) - dcaValue;
+
+    execAdvantage.classList.remove('negative');
+    if (advBtc >= 0) {
+      execAdvValue.textContent = `+${fmtNum(advBtc, 4)} BTC`;
+      execAdvValue.className = 'adv-value positive';
+      execAdvDetail.textContent = `${sym}${fmtMoney(toDisplay(advValue), state.currency)} more value via mining`;
+    } else {
+      execAdvantage.classList.add('negative');
+      execAdvValue.textContent = `${fmtNum(advBtc, 4)} BTC`;
+      execAdvValue.className = 'adv-value negative';
+      execAdvDetail.textContent = `${sym}${fmtMoney(toDisplay(Math.abs(advValue)), state.currency)} less value vs buying`;
+    }
+  }
+
+  // --- 5-Year Timeline ---
+  const execTimeline = document.getElementById("execTimeline");
+  if (execTimeline) {
+    const yearlyData = [];
+    for (let yr = 1; yr <= 5; yr++) {
+      const endMonth = Math.min(yr * 12, modelOut.rows.length);
+      const btcAccum = modelOut.rows.slice(0, endMonth).reduce((a, r) => a + (Number(r.NetBTC) || 0), 0);
+      const price = endMonth <= modelOut.prices.length ? modelOut.prices[endMonth - 1] : endPrice;
+      yearlyData.push({ yr, btc: btcAccum, value: btcAccum * price });
+    }
+
+    execTimeline.innerHTML = yearlyData.map((d, i) => {
+      const isCurrent = (d.yr * 12) === months || (d.yr === 5 && months >= 60);
+      return `
+        <div class="timeline-year${isCurrent ? ' current' : ''}">
+          <div class="yr">Y${d.yr}</div>
+          <div class="btc">${fmtNum(d.btc, 3)}</div>
+          <div class="val">${sym}${fmtMoney(toDisplay(d.value), state.currency)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- Key Assumptions ---
+  const execAssumpSummary = document.getElementById("execAssumpSummary");
+  if (execAssumpSummary) {
+    const basePriceDisp = Math.round(toDisplay(getBtcPriceUSD())).toLocaleString();
+    const minerText = UI.minerModel.options[UI.minerModel.selectedIndex].text.split(' ').slice(0, 3).join(' ');
+
+    let priceModelShort = '';
+    if (state.priceModel === 'custom') {
+      const preset = state.pricePreset !== 'custom' ? state.pricePreset.charAt(0).toUpperCase() + state.pricePreset.slice(1) : 'Custom';
+      priceModelShort = `Custom (${preset})`;
+    } else {
+      priceModelShort = `Cycle ${state.priceDrift > 0 ? '+' : ''}${state.priceDrift.toFixed(0)}%/yr`;
+    }
+
+    execAssumpSummary.innerHTML = `
+      <div class="assumption-item"><span class="label">Miners:</span> <span class="value">${state.minerCount.toLocaleString()} × ${minerText}</span></div>
+      <div class="assumption-item"><span class="label">Capex:</span> <span class="value">${sym}${fmtMoney(toDisplay(modelOut.capex), state.currency)}</span></div>
+      <div class="assumption-item"><span class="label">Power:</span> <span class="value">${state.powerCost.toFixed(3)} $/kWh</span></div>
+      <div class="assumption-item"><span class="label">Start Price:</span> <span class="value">${sym}${basePriceDisp}</span></div>
+      <div class="assumption-item"><span class="label">Hold Period:</span> <span class="value">${months} months</span></div>
+      <div class="assumption-item"><span class="label">Price Model:</span> <span class="value">${priceModelShort}</span></div>
+    `;
+  }
 }
 
 const recalc = debounce(()=>{
