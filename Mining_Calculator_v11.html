@@ -1,0 +1,3183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pantheon Mining Calculator - Investor Ready v3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --bg:#01111d;
+      --panel:#172433;
+      --panel2:#1e3044;
+      --text:#F5F7FA;
+      --muted:#7a8fa0;
+      --line:#2f455d;
+      --accent:#d6b389;
+      --accent2:#c9a06e;
+      --success:#34D399;
+      --warn:#FCD34D;
+      --danger:#F87171;
+      --radius:14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Montserrat,Inter,system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#010e18,#01111d 35%,#010e18);color:var(--text);min-height:100vh}
+
+    .container{max-width:1400px;margin:0 auto;padding:16px;display:grid;grid-template-columns:380px 1fr;gap:16px}
+    .sidebar,.main{background:rgba(23,36,51,.92);border:1px solid rgba(47,69,93,.6);border-radius:var(--radius);overflow:hidden}
+    .sidebar{padding:16px;position:sticky;top:16px;height:calc(100vh - 32px);overflow-y:auto}
+    .main{padding:16px}
+
+    h1{font-size:18px;font-weight:700}
+    h2{font-size:16px;font-weight:600;margin-bottom:12px}
+    h3{font-size:14px;font-weight:600;margin-bottom:8px}
+    h4{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+
+    label{display:block;margin-top:12px;color:var(--muted);font-size:12px;font-weight:500}
+    select,input[type="number"],input[type="text"],input[type="date"]{width:100%;margin-top:6px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(1,17,29,.7);color:var(--text);font-size:13px;outline:none;font-family:Inter,sans-serif}
+    select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(214,179,137,.15)}
+    input[readonly]{opacity:.8}
+
+    .slider-wrap{display:grid;grid-template-columns:1fr 80px;gap:10px;align-items:center;margin-top:6px}
+    input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:var(--line);border-radius:3px;outline:none}
+    input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:linear-gradient(135deg,#d6b389,#c9a06e);border-radius:50%;cursor:pointer;box-shadow:0 2px 8px rgba(214,179,137,.4)}
+    input[type="range"]::-moz-range-thumb{width:18px;height:18px;background:linear-gradient(135deg,#d6b389,#c9a06e);border:none;border-radius:50%;cursor:pointer}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border:1px solid var(--line);background:rgba(1,17,29,.7);color:var(--text);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none;font-family:Montserrat,sans-serif}
+    .btn:hover{background:rgba(1,17,29,.95);border-color:rgba(214,179,137,.4)}
+    .btn:active{transform:scale(.98)}
+    .btn.primary{background:linear-gradient(135deg,#d6b389,#c9a06e);border-color:transparent;color:#01111d;font-weight:700}
+    .btn.small{padding:7px 10px;font-size:12px;border-radius:8px}
+    .btn.ghost{background:transparent;border-color:transparent}
+    .btn.danger{border-color:var(--danger);color:var(--danger)}
+
+    .counter{display:grid;grid-template-columns:40px 1fr 40px;gap:8px;margin-top:6px}
+    .price-row{display:grid;grid-template-columns:1fr 40px;gap:8px;margin-top:6px}
+
+    .tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:12px;overflow-x:auto}
+    .tab-btn{flex:0 0 auto;padding:10px 16px;white-space:nowrap}
+    .tab-btn.active{background:linear-gradient(135deg,#d6b389,#c9a06e);border-color:transparent;color:#01111d;font-weight:700}
+    .tab-content{display:none;opacity:0;transform:translateY(8px)}
+    .tab-content.active{display:block;animation:tabFadeIn .3s ease forwards}
+
+    .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    .tile{background:rgba(1,17,29,.5);border:1px solid var(--line);border-radius:var(--radius);padding:14px;transition:all .15s}
+    .tile:hover{border-color:rgba(214,179,137,.3);transform:translateY(-2px)}
+    .tile p,.tile .value{font-size:20px;font-weight:700;margin:0}
+    .tile .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+    .yearly-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+    .yearly-tiles .tile p{font-size:14px}
+
+    .comparison{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch}
+    .vs-badge{display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted)}
+    .comparison .tile.winner{border-color:var(--success);background:rgba(52,211,153,.08)}
+
+    .chart-box{height:280px;background:rgba(1,17,29,.35);border:1px solid var(--line);border-radius:var(--radius);padding:10px}
+    .chart-box canvas{width:100%!important;height:100%!important}
+
+    .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:rgba(1,17,29,.25)}
+    table{width:100%;border-collapse:collapse;min-width:900px}
+    th,td{padding:10px 8px;font-size:12px;text-align:right;border-bottom:1px solid rgba(47,69,93,.6)}
+    th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:rgba(23,36,51,.98)}
+    th{background:rgba(23,36,51,.95);color:var(--muted);font-weight:600;position:sticky;top:0;z-index:2}
+    tr:hover td{background:rgba(214,179,137,.03)}
+    tr.year-subtotal td{background:rgba(148,163,184,.08);font-weight:700}
+
+    .divider{height:1px;background:var(--line);margin:16px 0}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(1,17,29,.6);border:1px solid var(--line);border-radius:20px;font-size:11px;color:var(--muted)}
+    .note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+    .row{display:flex;gap:10px;align-items:center}
+    .muted{color:var(--muted)}
+
+    .price-model-selector{display:flex;gap:6px;margin:10px 0}
+    .price-model-btn{flex:1;padding:8px 6px;font-size:11px;text-align:center;border:1px solid var(--line);background:rgba(1,17,29,.5);border-radius:10px;color:var(--muted);cursor:pointer}
+    .price-model-btn:hover{background:rgba(1,17,29,.8)}
+    .price-model-btn.active{border-color:var(--accent);background:rgba(214,179,137,.12);color:var(--text)}
+    .compare-mode-btn.active{border-color:var(--accent);background:rgba(214,179,137,.15);color:var(--text);font-weight:700}
+
+    .price-presets{display:flex;gap:4px;margin-bottom:10px}
+    .price-preset-btn{flex:1;padding:6px 4px;font-size:10px;text-align:center;border:1px solid var(--line);background:transparent;border-radius:8px;color:var(--muted);cursor:pointer}
+    .price-preset-btn:hover{background:rgba(47,69,93,.5);color:var(--text)}
+    .price-preset-btn.active{border-color:var(--success);background:rgba(52,211,153,.1);color:var(--success)}
+
+    .year-row{display:grid;grid-template-columns:50px 1fr 90px;gap:8px;align-items:center;margin-bottom:8px}
+    .year-label{font-size:11px;font-weight:600;color:var(--muted)}
+    .year-input{width:100%;padding:8px 10px;border:1px solid var(--line);background:rgba(1,17,29,.7);border-radius:10px;color:var(--text);font-size:13px;text-align:center}
+    .year-price{font-size:12px;color:var(--text);font-weight:600;text-align:right}
+    .year-price.negative{color:var(--danger)}
+
+    .sparkline-box{height:60px;margin-top:10px;background:rgba(1,17,29,.3);border:1px solid var(--line);border-radius:10px;padding:6px}
+    .sparkline-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:4px}
+
+    .hero-metric{background:linear-gradient(135deg,rgba(1,17,29,.8),rgba(23,36,51,.6));border:1px solid var(--line);border-radius:var(--radius);padding:20px 16px;text-align:center}
+    .hero-metric.highlight{border-color:rgba(214,179,137,.4);background:linear-gradient(135deg,rgba(214,179,137,.08),rgba(23,36,51,.6))}
+    .hero-metric .label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .hero-metric .value{font-size:32px;font-weight:700;line-height:1;margin-bottom:6px}
+    .hero-metric .subtext{font-size:11px;color:var(--muted)}
+
+    .scorecard{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+    .scorecard-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(1,17,29,.5);border-radius:10px;border:1px solid var(--line)}
+    .scorecard-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+    .scorecard-icon.pass{background:rgba(52,211,153,.15);color:var(--success)}
+    .scorecard-icon.warn{background:rgba(251,191,36,.15);color:var(--warn)}
+    .scorecard-icon.fail{background:rgba(248,113,113,.15);color:var(--danger)}
+
+    .exec-timeline{display:flex;gap:6px;margin:14px 0}
+    .timeline-year{flex:1;background:rgba(1,17,29,.5);border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center}
+    .timeline-year .yr{font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px}
+    .timeline-year .btc{font-size:13px;font-weight:700;margin-bottom:2px}
+    .timeline-year .val{font-size:10px;color:var(--muted)}
+    .timeline-year.current{border-color:rgba(214,179,137,.4);background:rgba(214,179,137,.08)}
+
+    .grade-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+    .grade-badge.excellent{background:rgba(52,211,153,.15);color:var(--success);border:1px solid rgba(52,211,153,.3)}
+    .grade-badge.good{background:rgba(96,165,250,.15);color:#60A5FA;border:1px solid rgba(96,165,250,.3)}
+    .grade-badge.fair{background:rgba(251,191,36,.15);color:var(--warn);border:1px solid rgba(251,191,36,.3)}
+    .grade-badge.poor{background:rgba(248,113,113,.15);color:var(--danger);border:1px solid rgba(248,113,113,.3)}
+
+    .mc-progress{height:4px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden}
+    .mc-progress-bar{height:100%;background:var(--accent);transition:width .1s;width:0}
+
+    .sticky-actions{position:sticky;bottom:0;padding:12px 0 0;background:linear-gradient(180deg,transparent,rgba(23,36,51,.98) 30%)}
+    #advancedAssumptions.collapsed{display:none}
+
+    /* ═══ V11: GLASSMORPHISM ═══ */
+    .glass{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(23,36,51,.5)!important;border:1px solid rgba(214,179,137,.1)!important;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+
+    /* ═══ V11: SPLASH SCREEN ═══ */
+    #splashScreen{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#010e18,#01111d);transition:opacity .6s,visibility .6s}
+    #splashScreen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    .splash-logo{width:80px;height:80px;background:linear-gradient(135deg,#d6b389,#c9a06e);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;color:#01111d;margin-bottom:20px;box-shadow:0 8px 40px rgba(214,179,137,.4);animation:splashPulse 1.5s ease-in-out infinite}
+    .splash-title{font-size:28px;font-weight:700;color:#F5F7FA;margin-bottom:6px;letter-spacing:-.5px}
+    .splash-sub{font-size:13px;color:#7a8fa0;margin-bottom:30px}
+    .splash-bar{width:240px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+    .splash-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width .3s;border-radius:2px}
+    .splash-status{font-size:11px;color:#7a8fa0;margin-top:12px}
+    @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+    /* ═══ V11: TICKER BAR ═══ */
+    .ticker-bar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:center;gap:24px;padding:8px 16px;background:rgba(1,17,29,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);font-size:12px}
+    .ticker-item{display:flex;align-items:center;gap:6px}
+    .ticker-label{color:var(--muted);font-weight:500}
+    .ticker-value{font-weight:700;font-variant-numeric:tabular-nums}
+    .ticker-value.positive{color:var(--success)}
+    .ticker-value.negative{color:var(--danger)}
+
+    /* ═══ V11: TOOLTIPS ═══ */
+    [data-tip]{position:relative;cursor:help}
+    [data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);padding:8px 12px;background:rgba(0,0,0,.92);color:#fff;font-size:11px;line-height:1.4;border-radius:8px;max-width:280px;white-space:normal;pointer-events:none;opacity:0;transition:opacity .2s;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+    [data-tip]:hover::after{opacity:1}
+
+    /* ═══ V11: TAB TRANSITIONS ═══ */
+    @keyframes tabFadeIn{to{opacity:1;transform:translateY(0)}}
+
+    /* ═══ V11: WALKTHROUGH ═══ */
+    .walkthrough-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center}
+    .walkthrough-overlay.active{display:flex}
+    .walkthrough-box{background:var(--panel);border:2px solid var(--accent);border-radius:16px;padding:28px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .wt-step{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+    .wt-title{font-size:18px;font-weight:700;margin-bottom:10px}
+    .wt-text{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px}
+    .wt-actions{display:flex;gap:8px;justify-content:flex-end}
+
+    /* ═══ V11: PRESENTATION MODE ═══ */
+    .pres-overlay{position:fixed;inset:0;z-index:8000;background:var(--bg);display:none;flex-direction:column}
+    .pres-overlay.active{display:flex}
+    .pres-header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;border-bottom:1px solid var(--line)}
+    .pres-slide{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;overflow:auto}
+    .pres-content{max-width:1000px;width:100%;text-align:center}
+    .mega-value{font-size:80px;font-weight:800;line-height:1;margin:24px 0}
+    .mega-label{font-size:20px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+    .mega-sub{font-size:24px;color:var(--muted);margin-top:16px}
+    .pres-footer{display:flex;justify-content:center;align-items:center;gap:16px;padding:20px;border-top:1px solid var(--line)}
+    .pres-dot{width:10px;height:10px;border-radius:50%;background:var(--line);cursor:pointer;border:none}
+    .pres-dot.active{background:var(--accent)}
+    .pres-nav{padding:10px 24px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;font-size:14px}
+    .pres-nav:hover{border-color:var(--accent)}
+
+    /* ═══ V11: FOOTER & MISC ═══ */
+    .app-footer{max-width:1400px;margin:0 auto;padding:16px}
+    .disclaimer-bar{background:rgba(23,36,51,.6);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;margin-bottom:12px}
+    .disclaimer-bar p{font-size:11px;color:var(--muted);line-height:1.6}
+    .disclaimer-bar strong{color:var(--accent)}
+    .footer-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);opacity:.6}
+    .input-section{margin-top:14px;padding:12px;background:rgba(1,17,29,.3);border:1px solid var(--line);border-radius:var(--radius)}
+    .input-section.collapsed .input-section-body{display:none}
+    .input-section-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+    .input-section-header h4{margin:0}
+    .scenario-slots{display:flex;gap:6px;margin-top:8px}
+    .scenario-slot{flex:1;padding:6px;border:1px solid var(--line);border-radius:8px;font-size:10px;text-align:center;cursor:pointer;background:transparent;color:var(--muted)}
+    .scenario-slot.filled{border-color:var(--accent);color:var(--text);background:rgba(214,179,137,.08)}
+    .scenario-slot:hover{border-color:var(--accent)}
+    .branding-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .brand-icon{width:44px;height:44px;background:linear-gradient(135deg,#d6b389,#c9a06e);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#01111d;box-shadow:0 4px 16px rgba(214,179,137,.3);flex-shrink:0}
+    .brand-text h1{font-size:18px;margin:0;line-height:1.2}
+    .brand-tagline{font-size:10px;color:var(--accent);font-weight:600;letter-spacing:.5px;margin-top:2px}
+
+    @media(max-width:1024px){.container{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.tiles,.scorecard{grid-template-columns:1fr 1fr}.yearly-tiles{grid-template-columns:repeat(3,1fr)}.ticker-bar{flex-wrap:wrap;gap:12px}}
+    @media(max-width:600px){.tiles,.scorecard{grid-template-columns:1fr}.yearly-tiles{grid-template-columns:1fr 1fr}.comparison{grid-template-columns:1fr}.vs-badge{display:none}.exec-timeline{flex-wrap:wrap}.timeline-year{flex:1 1 45%}.ticker-bar{font-size:10px;gap:8px}.mega-value{font-size:48px}}
+  </style>
+</head>
+<body>
+
+<!-- V11: SPLASH SCREEN -->
+<div id="splashScreen">
+  <div class="splash-logo">P</div>
+  <div class="splash-title">Pantheon Mining</div>
+  <div class="splash-sub">Institutional-Grade Mining Analytics</div>
+  <div class="splash-bar"><div class="splash-bar-fill" id="splashFill"></div></div>
+  <div class="splash-status" id="splashStatus">Initializing...</div>
+</div>
+
+<!-- V11: TICKER BAR -->
+<div class="ticker-bar" id="tickerBar">
+  <div class="ticker-item"><span class="ticker-label">MOIC</span><span class="ticker-value" id="tickerMoic">—x</span></div>
+  <div class="ticker-item"><span class="ticker-label">IRR</span><span class="ticker-value" id="tickerIrr">—%</span></div>
+  <div class="ticker-item"><span class="ticker-label">BTC Mined</span><span class="ticker-value" id="tickerBtc">—</span></div>
+  <div class="ticker-item"><span class="ticker-label">Hash Price</span><span class="ticker-value" id="tickerHashPrice">—</span></div>
+  <div class="ticker-item"><span class="ticker-label">NPV</span><span class="ticker-value" id="tickerNpv">—</span></div>
+  <div class="ticker-item"><span class="ticker-label">BTC Price</span><span class="ticker-value" id="tickerBtcPrice">—</span></div>
+</div>
+
+<div class="container">
+  <aside class="sidebar">
+    <div class="branding-header">
+      <div class="brand-icon">P</div>
+      <div class="brand-text">
+        <h1>Pantheon Mining</h1>
+        <div class="brand-tagline">Institutional-Grade Mining Analytics</div>
+      </div>
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="pill">v3.0 Investor Ready</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn small" id="walkthroughBtn" title="Guided tour">?</button>
+        <button class="btn small danger" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <label>Project</label>
+    <select id="project"><option>UAE: Operation SandHash 2</option></select>
+
+    <label>Mining Hardware</label>
+    <select id="minerModel">
+      <option value="s21hyd" data-hash="335" data-power="5.36" data-capex="9600">Antminer S21 Hyd 335 TH/s</option>
+      <option value="s21pro" data-hash="234" data-power="3.5" data-capex="5500">Antminer S21 Pro 234 TH/s</option>
+      <option value="s19pro" data-hash="110" data-power="3.25" data-capex="1600">Antminer S19 Pro 110 TH/s</option>
+    </select>
+
+    <label>Display Currency</label>
+    <select id="currency"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select>
+
+    <label>USD → EUR Rate</label>
+    <div class="price-row">
+      <input type="number" id="fxRate" value="0.92" step="0.001" min="0">
+      <button class="btn small" id="refreshFx">↻</button>
+    </div>
+
+    <label>Number of Miners</label>
+    <div class="counter">
+      <button class="btn" id="minerMinus">−</button>
+      <input type="number" id="minerCount" value="138" min="1" step="1">
+      <button class="btn" id="minerPlus">+</button>
+    </div>
+    <div class="note" id="capexDisplay">Hardware Capex: $1,324,800</div>
+
+    <label>Investment Horizon</label>
+    <div class="slider-wrap">
+      <input type="range" id="holdMonthsRange" min="12" max="120" step="1" value="60">
+      <input type="number" id="holdMonths" min="12" max="120" step="1" value="60">
+    </div>
+
+    <label>Current BTC Price</label>
+    <div class="price-row">
+      <input type="text" id="currentBtcPrice" readonly placeholder="Loading...">
+      <button class="btn small" id="refreshPrice">↻</button>
+    </div>
+
+    <label>Manual Price Override (USD)</label>
+    <input type="number" id="btcOverride" placeholder="e.g. 105000" step="100" min="0">
+
+    <!-- Custom Price Projections Panel -->
+    <div class="tile" style="margin-top:14px;padding:12px">
+      <h4 style="margin-bottom:10px">Price Projections (5-Year)</h4>
+      <div class="price-model-selector">
+        <button class="price-model-btn" data-mode="cycle">Cycle Model</button>
+        <button class="price-model-btn active" data-mode="custom">Custom Annual</button>
+      </div>
+
+      <div id="cycleModelNote" class="note" style="display:none">
+        Price follows cycle model with <strong id="cycleDetails">20% drift, ±60% amplitude</strong>
+      </div>
+
+      <div id="customPriceControls">
+        <div class="price-presets">
+          <button class="price-preset-btn" data-preset="bull">Bull</button>
+          <button class="price-preset-btn" data-preset="base">Base</button>
+          <button class="price-preset-btn" data-preset="bear">Bear</button>
+          <button class="price-preset-btn active" data-preset="custom">Custom</button>
+        </div>
+        <div class="year-row" style="margin-bottom:4px">
+          <span style="font-size:10px;color:var(--muted)">Year</span>
+          <span style="font-size:10px;color:var(--muted);text-align:center">Change %</span>
+          <span style="font-size:10px;color:var(--muted);text-align:right">Price</span>
+        </div>
+        <div class="year-row"><span class="year-label">Year 1</span><input type="number" class="year-input" id="priceY1" value="200" min="-90" max="500" step="1"><span class="year-price" id="priceY1Display">$0</span></div>
+        <div class="year-row"><span class="year-label">Year 2</span><input type="number" class="year-input" id="priceY2" value="80" min="-90" max="500" step="1"><span class="year-price" id="priceY2Display">$0</span></div>
+        <div class="year-row"><span class="year-label">Year 3</span><input type="number" class="year-input" id="priceY3" value="5" min="-90" max="500" step="1"><span class="year-price" id="priceY3Display">$0</span></div>
+        <div class="year-row"><span class="year-label">Year 4</span><input type="number" class="year-input" id="priceY4" value="-60" min="-90" max="500" step="1"><span class="year-price" id="priceY4Display">$0</span></div>
+        <div class="year-row"><span class="year-label">Year 5</span><input type="number" class="year-input" id="priceY5" value="25" min="-90" max="500" step="1"><span class="year-price" id="priceY5Display">$0</span></div>
+        <div class="sparkline-box"><canvas id="priceSparkline"></canvas></div>
+        <div class="sparkline-labels"><span>Start</span><span>Year 5</span></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <h3 style="margin:0">Advanced Assumptions</h3>
+      <button class="btn small ghost" id="toggleAdvanced">+</button>
+    </div>
+
+    <div id="advancedAssumptions" class="collapsed">
+      <label>BTC Price Drift (%/yr)</label>
+      <div class="slider-wrap"><input type="range" id="priceDriftRange" min="-20" max="60" step="1" value="20"><input type="number" id="priceDrift" value="20" step="1"></div>
+
+      <label>BTC Cycle Amplitude (±%)</label>
+      <div class="slider-wrap"><input type="range" id="priceCycleAmpRange" min="0" max="150" step="1" value="60"><input type="number" id="priceCycleAmp" value="60" step="1"></div>
+
+      <label>Cycle Length (months)</label>
+      <div class="slider-wrap"><input type="range" id="priceCycleMonthsRange" min="24" max="72" step="1" value="48"><input type="number" id="priceCycleMonths" value="48" step="1"></div>
+
+      <label>Halving Anchor Date</label>
+      <input type="date" id="halvingAnchor" value="2024-04-20">
+
+      <label>Unit Miner Cost ($)</label>
+      <div class="slider-wrap"><input type="range" id="unitCapexRange" min="500" max="15000" step="100" value="9600"><input type="number" id="unitCapex" value="9600" step="100"></div>
+
+      <label>Power Cost ($/kWh)</label>
+      <div class="slider-wrap"><input type="range" id="powerCostRange" min="0" max="0.15" step="0.001" value="0.05"><input type="number" id="powerCost" value="0.05" step="0.001"></div>
+
+      <label>Hashrate per Miner (TH/s)</label>
+      <div class="slider-wrap"><input type="range" id="hashratePerMinerRange" min="50" max="500" step="1" value="335"><input type="number" id="hashratePerMiner" value="335" step="1"></div>
+
+      <label>Power per Miner (kW)</label>
+      <div class="slider-wrap"><input type="range" id="powerPerMinerRange" min="1" max="10" step="0.01" value="5.36"><input type="number" id="powerPerMiner" value="5.36" step="0.01"></div>
+
+      <label>Network Hashrate (EH/s)</label>
+      <div class="slider-wrap"><input type="range" id="networkHashrateEHRange" min="400" max="2000" step="10" value="850"><input type="number" id="networkHashrateEH" value="850" step="10"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+        <button class="btn small" id="fetchHashrateBtn" title="Fetch live network hashrate">⟳ Fetch Live</button>
+        <span id="hashrateStatus" class="muted" style="font-size:11px"></span>
+      </div>
+
+      <label>Uptime (%)</label>
+      <div class="slider-wrap"><input type="range" id="uptimeRange" min="80" max="100" step="0.5" value="97"><input type="number" id="uptime" value="97" step="0.5"></div>
+
+      <label>Pool Fee (%)</label>
+      <div class="slider-wrap"><input type="range" id="poolFeeRange" min="0" max="5" step="0.1" value="1.5"><input type="number" id="poolFee" value="1.5" step="0.1"></div>
+
+      <label>Hosting Fee (% of revenue)</label>
+      <div class="slider-wrap"><input type="range" id="hostingFeeRange" min="0" max="10" step="0.1" value="0"><input type="number" id="hostingFee" value="0" step="0.1"></div>
+
+      <label>Management Fee (% of revenue)</label>
+      <div class="slider-wrap"><input type="range" id="managementFeeRange" min="0" max="10" step="0.1" value="0"><input type="number" id="managementFee" value="0" step="0.1"></div>
+
+      <label>Insurance (% of revenue)</label>
+      <div class="slider-wrap"><input type="range" id="insuranceFeeRange" min="0" max="5" step="0.1" value="0"><input type="number" id="insuranceFee" value="0" step="0.1"></div>
+
+      <label>Repair Reserve (% of capex/yr)</label>
+      <div class="slider-wrap"><input type="range" id="repairReserveRange" min="0" max="5" step="0.1" value="2"><input type="number" id="repairReserve" value="2" step="0.1"></div>
+
+      <label>ASIC Degradation (%/yr)</label>
+      <div class="slider-wrap"><input type="range" id="degradationRange" min="0" max="20" step="0.5" value="2"><input type="number" id="degradation" value="2" step="0.5"></div>
+
+      <label>Network Difficulty Growth (%/yr)</label>
+      <div class="slider-wrap"><input type="range" id="difficultyGrowthRange" min="-10" max="50" step="0.5" value="20"><input type="number" id="difficultyGrowth" value="20" step="0.5"></div>
+
+      <label>Resale Value (% of capex)</label>
+      <div class="slider-wrap"><input type="range" id="resaleRange" min="0" max="50" step="1" value="0"><input type="number" id="resaleValue" value="0" step="1"></div>
+
+      <label style="margin-top:16px"><input type="checkbox" id="reinvestBtc" style="width:auto;margin-right:8px">Sell BTC to cover operating costs</label>
+
+      <label>Power Cost Escalation (%/yr)</label>
+      <div class="slider-wrap"><input type="range" id="powerEscalationRange" min="0" max="15" step="0.5" value="0"><input type="number" id="powerEscalation" value="0" step="0.5"></div>
+    </div>
+
+    <!-- V11: NPV DISCOUNT RATE -->
+    <div class="input-section" id="npvSection">
+      <div class="input-section-header" onclick="this.parentElement.classList.toggle('collapsed');this.querySelector('span').textContent=this.parentElement.classList.contains('collapsed')?'+':'−'">
+        <h4>NPV & Discount Rate</h4>
+        <span class="btn small ghost">−</span>
+      </div>
+      <div class="input-section-body">
+        <label>Discount Rate (%/yr)</label>
+        <div class="slider-wrap"><input type="range" id="discountRateRange" min="0" max="30" step="0.5" value="10"><input type="number" id="discountRate" value="10" step="0.5"></div>
+        <div class="note" style="margin-top:6px">NPV: <strong id="npvDisplay">$0</strong></div>
+      </div>
+    </div>
+
+    <!-- V11: TAX MODELING -->
+    <div class="input-section collapsed" id="taxSection">
+      <div class="input-section-header" onclick="this.parentElement.classList.toggle('collapsed');this.querySelector('span').textContent=this.parentElement.classList.contains('collapsed')?'+':'−'">
+        <h4>Tax Impact</h4>
+        <span class="btn small ghost">+</span>
+      </div>
+      <div class="input-section-body">
+        <label><input type="checkbox" id="taxEnabled" style="width:auto;margin-right:8px">Enable Tax Modeling</label>
+        <label>Jurisdiction</label>
+        <select id="taxJurisdiction">
+          <option value="uae">UAE (0% corporate)</option>
+          <option value="us">US (21% corporate)</option>
+          <option value="uk">UK (25% corporate)</option>
+          <option value="de">Germany (30% corporate)</option>
+          <option value="nl">Netherlands (25.8% corporate)</option>
+          <option value="custom">Custom Rate</option>
+        </select>
+        <label>Effective Tax Rate (%)</label>
+        <div class="slider-wrap"><input type="range" id="taxRateRange" min="0" max="50" step="0.5" value="0"><input type="number" id="taxRate" value="0" step="0.5"></div>
+        <label>Depreciation Schedule (years)</label>
+        <div class="slider-wrap"><input type="range" id="depreciationYearsRange" min="1" max="7" step="1" value="5"><input type="number" id="depreciationYears" value="5" step="1"></div>
+        <div class="note" style="margin-top:6px">After-Tax IRR: <strong id="afterTaxIrrDisplay">—</strong></div>
+        <div class="note">Est. Total Tax: <strong id="totalTaxDisplay">—</strong></div>
+      </div>
+    </div>
+
+    <!-- V11: SCENARIO COMPARISON -->
+    <div class="input-section" id="scenarioSection">
+      <div class="input-section-header" onclick="this.parentElement.classList.toggle('collapsed');this.querySelector('span').textContent=this.parentElement.classList.contains('collapsed')?'+':'−'">
+        <h4>Scenario Comparison</h4>
+        <span class="btn small ghost">−</span>
+      </div>
+      <div class="input-section-body">
+        <div class="note">Save current config to compare up to 3 scenarios side-by-side</div>
+        <div class="scenario-slots">
+          <button class="scenario-slot" id="scenSlot1" onclick="saveScenario(0)">Slot 1</button>
+          <button class="scenario-slot" id="scenSlot2" onclick="saveScenario(1)">Slot 2</button>
+          <button class="scenario-slot" id="scenSlot3" onclick="saveScenario(2)">Slot 3</button>
+        </div>
+        <button class="btn small" id="scenarioCompareBtn" style="margin-top:8px;width:100%" onclick="compareScenarios()">Compare Saved</button>
+      </div>
+    </div>
+
+    <div class="sticky-actions">
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <button class="btn primary" id="shareBtn">Share</button>
+        <button class="btn" id="exportBtn">Excel</button>
+        <button class="btn" id="exportHtmlBtn">Report</button>
+        <button class="btn" id="onepageSummaryBtn">1-Pager</button>
+        <button class="btn primary" id="presentationBtn">Present</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="tabs">
+      <button class="btn tab-btn active" data-tab="executive">Executive</button>
+      <button class="btn tab-btn" data-tab="overview">Overview</button>
+      <button class="btn tab-btn" data-tab="dashboard">Dashboard</button>
+      <button class="btn tab-btn" data-tab="cashflow">Cash Flow</button>
+      <button class="btn tab-btn" data-tab="sensitivity">Sensitivity</button>
+      <button class="btn tab-btn" data-tab="montecarlo">Monte Carlo</button>
+    </div>
+
+    <!-- EXECUTIVE TAB -->
+    <section id="executive" class="tab-content active">
+      <div class="row" style="margin-bottom:16px;justify-content:space-between">
+        <h2 style="margin:0">Investment Summary</h2>
+        <div id="investmentGrade" class="grade-badge excellent">Excellent</div>
+      </div>
+
+      <div class="tiles">
+        <div class="hero-metric highlight glass" data-tip="Multiple on Invested Capital: Total ending BTC value divided by initial hardware investment (CapEx). A 2x MOIC means your investment doubled.">
+          <div class="label">Return Multiple</div>
+          <div class="value" id="heroMoic" style="color:var(--accent)">—x</div>
+          <div class="subtext">MOIC (BTC only)</div>
+        </div>
+        <div class="hero-metric glass" data-tip="Internal Rate of Return: The annualized effective compounded return rate. Accounts for the time value of all cash flows over the investment horizon.">
+          <div class="label">Annualized Return</div>
+          <div class="value" id="heroIrr">—%</div>
+          <div class="subtext" id="heroIrrSub">IRR (pre-tax)</div>
+        </div>
+        <div class="hero-metric glass" data-tip="Capital Recovery: Number of months until the portfolio value of mined BTC exceeds all costs (CapEx + cumulative OpEx).">
+          <div class="label">Capital Recovery</div>
+          <div class="value" id="heroPayback">—</div>
+          <div class="subtext">months to payback</div>
+        </div>
+      </div>
+
+      <!-- V11: NPV + Breakeven + Hash Price row -->
+      <div class="tiles" style="margin-bottom:16px">
+        <div class="hero-metric glass" data-tip="Net Present Value: The present value of all future cash flows discounted at your required rate of return. Positive NPV means the investment exceeds your hurdle rate.">
+          <div class="label">Net Present Value</div>
+          <div class="value" id="heroNpv" style="font-size:24px">—</div>
+          <div class="subtext" id="heroNpvSub">at 10% discount rate</div>
+        </div>
+        <div class="hero-metric glass" data-tip="Breakeven BTC Price: The minimum average BTC price needed over the investment period for the operation to return your initial capital (MOIC = 1.0x).">
+          <div class="label">Breakeven BTC Price</div>
+          <div class="value" id="heroBreakeven" style="font-size:24px">—</div>
+          <div class="subtext">minimum for MOIC = 1.0x</div>
+        </div>
+        <div class="hero-metric glass" data-tip="Hash Price: Revenue per TH/s per day, minus power costs. This is the industry-standard metric for mining profitability. Higher = more profitable.">
+          <div class="label">Hash Price</div>
+          <div class="value" id="heroHashPrice" style="font-size:24px">—</div>
+          <div class="subtext">$/TH/day (net of power)</div>
+        </div>
+      </div>
+
+      <h3>Investment Scorecard</h3>
+      <div class="scorecard">
+        <div class="scorecard-item"><div class="scorecard-icon pass" id="scoreMoicIcon">✓</div><div><div class="muted" style="font-size:11px">Return Multiple</div><div id="scoreMoicText">—</div></div></div>
+        <div class="scorecard-item"><div class="scorecard-icon pass" id="scorePaybackIcon">✓</div><div><div class="muted" style="font-size:11px">Payback Period</div><div id="scorePaybackText">—</div></div></div>
+        <div class="scorecard-item"><div class="scorecard-icon pass" id="scoreCostIcon">✓</div><div><div class="muted" style="font-size:11px">Production Cost</div><div id="scoreCostText">—</div></div></div>
+        <div class="scorecard-item"><div class="scorecard-icon pass" id="scoreEdgeIcon">✓</div><div><div class="muted" style="font-size:11px">Mining Advantage</div><div id="scoreEdgeText">—</div></div></div>
+      </div>
+
+      <h3>Mining vs Buying Bitcoin</h3>
+      <div class="compare-toggle" style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="btn small compare-mode-btn active" data-mode="cashMatched">Cash-Matched Buy</button>
+        <button class="btn small compare-mode-btn" data-mode="dca">True DCA</button>
+      </div>
+      <div class="note" id="compareModeNote" style="margin-bottom:12px;font-size:11px">Same timing as mining: capex upfront, OPEX at each month's price.</div>
+      <div class="comparison">
+        <div class="tile" id="miningCard"><h4>Mining</h4><p id="execMiningBtc">0.0000</p><div class="sub">BTC acquired</div><div class="sub" id="execMiningValue">$0</div></div>
+        <div class="vs-badge">VS</div>
+        <div class="tile" id="buyingCard"><h4 id="buyingCardTitle">Cash-Matched Buy</h4><p id="execBuyBtc">0.0000</p><div class="sub">BTC acquired</div><div class="sub" id="execBuyValue">$0</div></div>
+      </div>
+
+      <div class="tile" style="margin-top:16px;text-align:center" id="advantageCard">
+        <h4>Mining Advantage</h4>
+        <p id="execAdvValue" style="color:var(--success)">+0.0000 BTC</p>
+        <div class="sub" id="execAdvDetail">—</div>
+      </div>
+
+      <h3 style="margin-top:16px">5-Year BTC Accumulation</h3>
+      <div class="exec-timeline" id="execTimeline"></div>
+
+      <h3 style="margin-top:16px">Cumulative Net Value</h3>
+      <div class="chart-box"><canvas id="execChart"></canvas></div>
+
+      <!-- V11: Mining vs Traditional Assets -->
+      <h3 style="margin-top:16px">Mining vs Traditional Investments</h3>
+      <div class="note" style="margin-bottom:12px">Same capital deployed across different asset classes over the same holding period</div>
+      <div class="tiles" style="grid-template-columns:repeat(5,1fr)">
+        <div class="tile glass" id="tradMining"><h4>BTC Mining</h4><p id="tradMiningReturn">—</p><div class="sub">MOIC</div></div>
+        <div class="tile glass" id="tradBtcHold"><h4>BTC Spot Hold</h4><p id="tradBtcReturn">—</p><div class="sub">MOIC</div></div>
+        <div class="tile glass" id="tradSP500"><h4>S&P 500</h4><p id="tradSpReturn">—</p><div class="sub">MOIC</div></div>
+        <div class="tile glass" id="tradRealEstate"><h4>Real Estate</h4><p id="tradReReturn">—</p><div class="sub">MOIC</div></div>
+        <div class="tile glass" id="tradBonds"><h4>Bonds</h4><p id="tradBondsReturn">—</p><div class="sub">MOIC</div></div>
+      </div>
+      <div class="chart-box" style="margin-top:12px"><canvas id="traditionalAssetsChart"></canvas></div>
+
+      <div class="tile" style="margin-top:16px">
+        <h4>Key Assumptions</h4>
+        <div id="execAssumptions" class="note">—</div>
+      </div>
+    </section>
+
+    <!-- OVERVIEW TAB -->
+    <section id="overview" class="tab-content">
+      <h2>Detailed Outputs</h2>
+      <div class="tiles">
+        <div class="tile glass" data-tip="Total USD value of all BTC mined over the investment period, valued at each month's projected price"><h4>Cumulative Revenue</h4><p id="ovRevenue">$0</p></div>
+        <div class="tile glass" data-tip="Total of hardware CapEx plus all operating expenses (power, fees, maintenance) over the full period"><h4>Cumulative Costs</h4><p id="ovCosts">$0</p></div>
+        <div class="tile glass" data-tip="Revenue minus all costs. Positive means the operation generates cash beyond its total cost base"><h4>Net Cash Flow</h4><p id="ovNetCash">$0</p></div>
+      </div>
+      <div class="tiles">
+        <div class="tile glass" data-tip="Internal Rate of Return: The annualized effective compounded return rate accounting for time value of money"><h4>IRR</h4><p id="ovIrr">0%</p></div>
+        <div class="tile glass" data-tip="Multiple on Invested Capital: Ending BTC portfolio value divided by initial hardware investment (CapEx only)"><h4>MOIC</h4><p id="ovMoic">0x</p></div>
+        <div class="tile glass" data-tip="Total BTC held at the end of the investment period, net of pool fees and any BTC sold for operations"><h4>Ending BTC</h4><p id="ovBtcMined">0</p></div>
+      </div>
+
+      <h3 style="margin-top:16px">Profitability Over Time</h3>
+      <div class="chart-box"><canvas id="profitabilityChart"></canvas></div>
+
+      <div class="divider"></div>
+
+      <h3>Yearly BTC Value</h3>
+      <div class="yearly-tiles" id="yearlyTiles"></div>
+
+      <div class="divider"></div>
+
+      <h3>Mining vs Buying Comparison</h3>
+      <div class="note" id="ovCompareModeNote" style="margin-bottom:12px">Cash-Matched Buy: Same timing as mining (capex upfront, OPEX at each month's price).</div>
+      <div class="comparison">
+        <div class="tile" id="ovMiningCard"><h4>Mining</h4><p id="ovMiningBtc">0.0000</p><div class="sub">BTC accumulated</div><div class="sub" id="ovMiningValue">$0</div></div>
+        <div class="vs-badge">VS</div>
+        <div class="tile" id="ovBuyingCard"><h4 id="ovBuyingCardTitle">Cash-Matched Buy</h4><p id="ovBuyBtc">0.0000</p><div class="sub">BTC accumulated</div><div class="sub" id="ovBuyValue">$0</div></div>
+      </div>
+
+      <div class="tile" style="margin-top:16px">
+        <h4>Cost Analysis</h4>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:12px">
+          <div data-tip="Total costs (CapEx + all OpEx) divided by total BTC mined"><div class="muted" style="font-size:11px">Avg Cost per BTC</div><div style="font-size:18px;font-weight:700" id="ovCostPerBtc">$0</div></div>
+          <div data-tip="Current spot market price of Bitcoin"><div class="muted" style="font-size:11px">Current Market Price</div><div style="font-size:18px;font-weight:700" id="ovMarketPrice">$0</div></div>
+          <div data-tip="How far below (or above) market price your production cost is"><div class="muted" style="font-size:11px">Production Margin</div><div style="font-size:18px;font-weight:700" id="ovMargin">0%</div></div>
+        </div>
+      </div>
+
+      <!-- V11: Cost Breakdown Pie Charts -->
+      <div class="divider"></div>
+      <h3>Cost Breakdown</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+        <div>
+          <h4 style="text-align:center;margin-bottom:8px">CapEx Composition</h4>
+          <div class="chart-box" style="height:220px"><canvas id="capexPieChart"></canvas></div>
+        </div>
+        <div>
+          <h4 style="text-align:center;margin-bottom:8px">5-Year OpEx Composition</h4>
+          <div class="chart-box" style="height:220px"><canvas id="opexPieChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- V11: Waterfall Chart -->
+      <div class="divider"></div>
+      <h3>P&L Waterfall</h3>
+      <div class="note" style="margin-bottom:8px">Revenue flowing through costs to net profit</div>
+      <div class="chart-box" style="height:300px"><canvas id="waterfallChart"></canvas></div>
+
+      <!-- V11: Hash Price Over Time -->
+      <div class="divider"></div>
+      <h3>Hash Price Over Time</h3>
+      <div class="note" style="margin-bottom:8px">Revenue per TH/s per day ($/TH/day) — the industry-standard mining profitability metric</div>
+      <div class="chart-box"><canvas id="hashPriceChart"></canvas></div>
+    </section>
+
+    <!-- DASHBOARD TAB -->
+    <section id="dashboard" class="tab-content">
+      <div class="row" style="margin-bottom:16px;justify-content:space-between">
+        <div><h2 style="margin:0">Live Mining Dashboard</h2><div class="note" style="margin:0">Real-time view of your mining operation</div></div>
+        <div class="pill" style="background:rgba(52,211,153,.15);color:var(--success);border-color:var(--success)">● Operations Active</div>
+      </div>
+      <div class="tiles" style="grid-template-columns:repeat(4,1fr)">
+        <div class="tile glass" data-tip="Cumulative BTC mined and held (net of pool fees) through the simulated period"><h4>Total BTC Mined</h4><p id="dashBtcMined">0.000</p><div class="sub" id="dashBtcChange">—</div></div>
+        <div class="tile glass" data-tip="Current BTC holdings valued at the projected BTC price for this month"><h4>Portfolio Value</h4><p id="dashPortfolioValue">$0</p><div class="sub" id="dashPortfolioChange">—</div></div>
+        <div class="tile glass" data-tip="Total combined hashrate of your mining fleet at current degradation level"><h4>Fleet Hashrate</h4><p id="dashHashrate">0 TH/s</p><div class="sub" id="dashUptimeStatus">—</div></div>
+        <div class="tile glass" data-tip="All-in cost per BTC including CapEx amortization, power, fees, and maintenance"><h4>Cost per BTC</h4><p id="dashCostPerBtc">$0</p><div class="sub" id="dashCostMargin">—</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:16px">
+        <div>
+          <h3 style="margin-bottom:8px">BTC Accumulation Progress</h3>
+          <div class="chart-box"><canvas id="dashAccumChart"></canvas></div>
+        </div>
+        <div>
+          <div class="tile" style="margin-bottom:12px">
+            <h4>BREAK-EVEN PROGRESS</h4>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px">
+              <span class="muted" style="font-size:12px">Progress</span>
+              <span id="dashBreakevenPct" style="font-size:12px">0%</span>
+            </div>
+            <div style="background:var(--line);border-radius:4px;height:10px;overflow:hidden">
+              <div id="dashBreakevenBar" style="height:100%;background:var(--success);width:0%;transition:width .3s"></div>
+            </div>
+            <div id="dashBreakevenRemaining" class="sub" style="margin-top:6px">Estimated — months remaining</div>
+          </div>
+          <div class="tile">
+            <h4>PERIOD STATISTICS</h4>
+            <div style="display:flex;justify-content:space-between;margin-top:8px"><span class="muted">Gross BTC Mined</span><span id="dashGrossBtc">0.0000</span></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px"><span class="muted">Pool Fees</span><span id="dashPoolFees" style="color:var(--danger)">-0.0000</span></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px"><span class="muted">Net BTC</span><span id="dashNetBtc">0.0000</span></div>
+            <div style="border-top:1px solid var(--line);margin:8px 0"></div>
+            <div style="display:flex;justify-content:space-between"><span class="muted">Power Costs</span><span id="dashPowerCosts">$0</span></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px"><span class="muted">Operating Fees</span><span id="dashOpFees">$0</span></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px"><span class="muted">Net Income</span><span id="dashNetIncome" style="font-weight:600">$0</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:16px">
+        <div>
+          <h3 style="margin-bottom:8px">Monthly Revenue vs Costs</h3>
+          <div class="chart-box"><canvas id="dashRevenueChart"></canvas></div>
+        </div>
+        <div class="tile">
+          <h4>RECENT ACTIVITY</h4>
+          <div id="dashActivity" style="margin-top:8px">
+            <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)">
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(214,179,137,.15);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700">B</div>
+              <div><div style="font-weight:500">Block reward received</div><div class="sub" id="dashActivityBlock">+0.00234 BTC • 2 hours ago</div></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)">
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(251,191,36,.15);display:flex;align-items:center;justify-content:center;color:var(--warn)">⚡</div>
+              <div><div style="font-weight:500">Power bill settled</div><div class="sub" id="dashActivityPower">-$4,521 • Yesterday</div></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0">
+              <div style="width:32px;height:32px;border-radius:8px;background:rgba(96,165,250,.15);display:flex;align-items:center;justify-content:center;color:#60A5FA">◫</div>
+              <div><div style="font-weight:500">Difficulty adjustment</div><div class="sub" id="dashActivityDiff">+2.1% increase • 3 days ago</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tiles" style="grid-template-columns:repeat(4,1fr);margin-top:16px">
+        <div class="tile"><h4>PROJECTED YEAR-END BTC</h4><p id="dashYearEndBtc">0.000</p><div class="sub">at current production rate</div></div>
+        <div class="tile"><h4>PROJECTED YEAR-END VALUE</h4><p id="dashYearEndValue">$0</p><div class="sub">based on scenario price</div></div>
+        <div class="tile"><h4>EFFECTIVE HASH SHARE</h4><p id="dashHashShare">0%</p><div class="sub">of network hashrate</div></div>
+        <div class="tile"><h4>POWER EFFICIENCY</h4><p id="dashEfficiency">0 J/TH</p><div class="sub">fleet average</div></div>
+      </div>
+    </section>
+
+    <!-- CASH FLOW TAB -->
+    <section id="cashflow" class="tab-content">
+      <div class="row" style="margin-bottom:16px;justify-content:space-between">
+        <h2 style="margin:0">Cash Flow Bridge</h2>
+        <button class="btn small" id="toggleCashflowView">Switch to Annual</button>
+      </div>
+      <div class="table-wrap" style="max-height:600px;overflow:auto">
+        <table id="cashflowTable">
+          <thead><tr><th>Period</th><th>Gross BTC</th><th>Pool Fee</th><th>Net BTC</th><th>BTC Price</th><th>Revenue</th><th>Power</th><th>Hosting</th><th>Mgmt</th><th>Insurance</th><th>Repairs</th><th>Net Cash</th><th>Cumulative</th></tr></thead>
+          <tbody id="cashflowBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SENSITIVITY TAB -->
+    <section id="sensitivity" class="tab-content">
+      <h2>Sensitivity Analysis</h2>
+      <div class="note" style="margin-bottom:16px">How MOIC changes with different BTC price and difficulty assumptions. Current settings highlighted.</div>
+      <div class="table-wrap">
+        <table id="sensitivityTable">
+          <thead><tr><th>BTC Price</th><th>Diff +5%/yr</th><th>Diff +15%/yr</th><th>Diff +25%/yr</th><th>Diff +35%/yr</th></tr></thead>
+          <tbody id="sensitivityBody"></tbody>
+        </table>
+      </div>
+      <div class="divider"></div>
+      <h3>Power Cost Sensitivity</h3>
+      <div class="note" style="margin-bottom:10px">Total MOIC includes BTC value plus net cash position (revenue minus operating costs).</div>
+      <div class="table-wrap">
+        <table id="powerSensitivityTable">
+          <thead><tr><th>Power ($/kWh)</th><th>Total MOIC</th><th>Monthly OPEX</th><th>Breakeven BTC</th></tr></thead>
+          <tbody id="powerSensitivityBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MONTE CARLO TAB -->
+    <section id="montecarlo" class="tab-content">
+      <h2>Monte Carlo Simulation</h2>
+      <div class="note" style="margin-bottom:16px">1,000 randomized scenarios varying price trajectory, difficulty growth, and network conditions.</div>
+      <div class="tiles">
+        <div class="tile glass" data-tip="Percentage of 1,000 random simulations where your return multiple exceeds 1.5x"><h4>Prob. MOIC > 1.5x</h4><p id="mcProbMoic">—%</p></div>
+        <div class="tile glass" data-tip="Percentage of simulations where you recover your initial investment within 18 months"><h4>Prob. Breakeven < 18mo</h4><p id="mcProbBreakeven">—%</p></div>
+        <div class="tile glass" data-tip="Average total BTC holdings at the end of the investment period across all simulations"><h4>Avg. Ending BTC</h4><p id="mcAvgBtc">—</p></div>
+      </div>
+      <div class="chart-box"><canvas id="mcChart"></canvas></div>
+      <div class="mc-progress" id="mcProgress" style="display:none"><div class="mc-progress-bar" id="mcProgressBar"></div></div>
+      <button class="btn primary" id="rerunMC" style="margin-top:12px">Re-run Monte Carlo</button>
+    </section>
+  </main>
+</div>
+
+<!-- V11: PRESENTATION MODE OVERLAY -->
+<div class="pres-overlay" id="presOverlay">
+  <div class="pres-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="brand-icon" style="width:36px;height:36px;font-size:18px;border-radius:10px">P</div>
+      <div><strong>Pantheon Mining</strong> <span class="muted" style="font-size:12px">Investment Presentation</span></div>
+    </div>
+    <button class="btn small" id="presClose" onclick="closePresentation()">Exit</button>
+  </div>
+  <div class="pres-slide"><div class="pres-content" id="presContent"></div></div>
+  <div class="pres-footer">
+    <button class="pres-nav" onclick="presNav(-1)">&#8592; Prev</button>
+    <div id="presDots"></div>
+    <button class="pres-nav" onclick="presNav(1)">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- V11: WALKTHROUGH OVERLAY -->
+<div class="walkthrough-overlay" id="walkthroughOverlay">
+  <div class="walkthrough-box">
+    <div class="wt-step" id="wtStepNum">Step 1 of 6</div>
+    <div class="wt-title" id="wtTitle">Welcome</div>
+    <div class="wt-text" id="wtText">—</div>
+    <div class="wt-actions">
+      <button class="btn small" onclick="closeWalkthrough()">Skip</button>
+      <button class="btn small primary" id="wtNextBtn" onclick="nextWalkthroughStep()">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- V11: SCENARIO COMPARISON MODAL -->
+<div class="walkthrough-overlay" id="scenarioModal">
+  <div class="walkthrough-box" style="max-width:800px">
+    <div class="wt-title">Scenario Comparison</div>
+    <div id="scenarioCompareContent" style="margin:16px 0">No scenarios saved yet. Save configurations using the Scenario Comparison panel in the sidebar.</div>
+    <div class="wt-actions">
+      <button class="btn small" onclick="document.getElementById('scenarioModal').classList.remove('active')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- V11: FOOTER WITH DISCLAIMER -->
+<footer class="app-footer">
+  <div class="disclaimer-bar">
+    <p><strong>Important Disclaimer:</strong> This calculator is a financial modeling tool for illustrative and educational purposes only. It does not constitute investment advice, a solicitation, or a recommendation to buy, sell, or hold any investment or security. All projections are based on user-defined assumptions and historical patterns that may not predict future results. Bitcoin mining involves significant risks including but not limited to: price volatility, network difficulty changes, regulatory uncertainty, hardware obsolescence, counterparty risk, and operational downtime. Past performance does not guarantee future returns. Investors should conduct their own due diligence and consult qualified financial, tax, and legal advisors before making investment decisions.</p>
+  </div>
+  <div class="footer-meta">
+    <span id="footerVersion">Pantheon Mining Calculator v3.0</span>
+    <span id="footerTimestamp"></span>
+  </div>
+</footer>
+
+<script>
+const CONFIG = { BLOCK_REWARD: 3.125, BLOCKS_PER_DAY: 144, HALVING_INTERVAL_MONTHS: 48 };
+
+// Calculate months until next halving from current date
+function getHalvingMonths() {
+  const now = new Date();
+  const anchor = new Date(state.halvingAnchor || '2024-04-20');
+  const monthsSinceAnchor = (now.getFullYear() - anchor.getFullYear()) * 12 + (now.getMonth() - anchor.getMonth());
+
+  // Next halving is 48 months after anchor, then every 48 months after that
+  const monthsUntilNext = CONFIG.HALVING_INTERVAL_MONTHS - (monthsSinceAnchor % CONFIG.HALVING_INTERVAL_MONTHS);
+  return monthsUntilNext <= 0 ? CONFIG.HALVING_INTERVAL_MONTHS : monthsUntilNext;
+}
+
+const DEFAULTS = {
+  minerModel: "s21hyd", currency: "USD", fxRate: 0.92, minerCount: 138, holdMonths: 60,
+  scenario: "base", btcOverride: "", priceModel: "custom", pricePreset: "custom",
+  priceY1: 200, priceY2: 80, priceY3: 5, priceY4: -60, priceY5: 25,
+  priceDrift: 20, priceCycleAmp: 60, priceCycleMonths: 48, halvingAnchor: "2024-04-20",
+  unitCapex: 9600, powerCost: 0.05, hashratePerMiner: 335, powerPerMiner: 5.36,
+  networkHashrateEH: 850, uptime: 97, poolFee: 1.5, hostingFee: 0, managementFee: 0,
+  insuranceFee: 0, repairReserve: 0, degradation: 2, difficultyGrowth: 20,
+  resaleValue: 0, reinvestBtc: false, cashflowView: "monthly", compareMode: "cashMatched",
+  // V11 additions
+  powerEscalation: 0, discountRate: 10,
+  debtEnabled: false, loanAmount: 0, loanRate: 8, loanTerm: 60,
+  taxEnabled: false, taxJurisdiction: "uae", taxRate: 0, depreciationYears: 5
+};
+
+// V11: Tax rate lookup
+const TAX_RATES = { uae: 0, us: 21, uk: 25, de: 30, nl: 25.8, custom: 0 };
+
+// V11: Scenario storage
+let savedScenarios = [null, null, null];
+
+// V11: Walkthrough state
+let wtCurrentStep = 0;
+const WT_STEPS = [
+  { title: 'Welcome to Pantheon Mining Calculator', text: 'This tool models Bitcoin mining profitability over a multi-year investment horizon. It compares mining to buying BTC directly and provides institutional-grade analytics. Use the sidebar to configure your mining operation, and explore the tabs to see different analyses.' },
+  { title: 'Sidebar: Your Mining Setup', text: 'Select your hardware model, number of miners, and investment horizon. The calculator auto-populates specs like hashrate and power draw. Scroll down to adjust power costs, fees, and network assumptions.' },
+  { title: 'Executive Tab', text: 'Your investor-ready summary. Shows MOIC (return multiple), IRR (annualized return), payback period, NPV, breakeven price, and hash price. The investment scorecard grades your setup. Below, see how mining compares to buying BTC and traditional investments.' },
+  { title: 'Advanced Features', text: 'Use Price Projections to model different BTC price scenarios. Enable Debt Financing to model leveraged operations. Enable Tax Impact for after-tax returns. Save up to 3 configurations with Scenario Comparison.' },
+  { title: 'Charts & Analysis', text: 'The Overview tab has cost breakdowns (pie charts), P&L waterfall, and hash price trends. The Dashboard simulates live operations. Sensitivity and Monte Carlo tabs stress-test your assumptions.' },
+  { title: 'Export & Present', text: 'Export to Excel, HTML Report, or PDF. Use the 1-Pager for a printable executive summary. Hit Present for full-screen presentation mode — perfect for investor meetings. The ticker bar at the top always shows key metrics.' }
+];
+
+// V11: Presentation state
+let presCurrentSlide = 0;
+
+const SCENARIOS = { bear: { drift: 5, amp: 45 }, base: { drift: 20, amp: 60 }, bull: { drift: 35, amp: 80 } };
+const PRESETS = { bull: { y1: 40, y2: 30, y3: 25, y4: 20, y5: 15 }, base: { y1: 15, y2: 10, y3: 8, y4: 5, y5: 5 }, bear: { y1: -10, y2: -5, y3: 0, y4: 5, y5: 10 } };
+
+let state = JSON.parse(JSON.stringify(DEFAULTS));
+let btcSpotUSD = 100000;
+let modelCache = { key: null, result: null };
+let charts = {};
+
+const $ = id => document.getElementById(id);
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const fmtMoney = x => Math.round(x || 0).toLocaleString();
+const fmtBtc = (x, d = 4) => (x || 0).toFixed(d);
+const fmtPct = (x, d = 1) => ((x || 0) * 100).toFixed(d) + '%';
+const fmtNum = (x, d = 2) => (x || 0).toFixed(d);
+const symbolFor = cur => cur === 'EUR' ? '€' : '$';
+const toDisplay = usd => state.currency === 'EUR' ? usd * (state.fxRate || 0.92) : usd;
+const debounce = (fn, ms = 100) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+function getBtcPrice() { return state.btcOverride ? +state.btcOverride : btcSpotUSD; }
+
+function getPrices(months) {
+  const p0 = getBtcPrice();
+  const prices = [p0];
+  if (state.priceModel === 'custom') {
+    const changes = [state.priceY1/100, state.priceY2/100, state.priceY3/100, state.priceY4/100, state.priceY5/100];
+    for (let m = 1; m <= months; m++) {
+      const yr = Math.floor((m - 1) / 12);
+      const monthInYr = (m - 1) % 12;
+      const yStart = yr === 0 ? p0 : prices[yr * 12];
+      const yEnd = yStart * (1 + (changes[yr] || changes[4]));
+      prices[m] = yStart + (yEnd - yStart) * (monthInYr + 1) / 12;
+    }
+  } else {
+    const scen = SCENARIOS[state.scenario] || SCENARIOS.base;
+    const drift = (state.priceDrift ?? scen.drift) / 100;
+    const amp = (state.priceCycleAmp ?? scen.amp) / 100;
+    const cycleLen = state.priceCycleMonths || 48;
+    const halvingDate = new Date(state.halvingAnchor || '2024-04-20');
+    const now = new Date();
+    const monthsSinceHalving = (now.getFullYear() - halvingDate.getFullYear()) * 12 + (now.getMonth() - halvingDate.getMonth());
+    for (let m = 1; m <= months; m++) {
+      const phase = ((monthsSinceHalving + m) / cycleLen) * 2 * Math.PI;
+      const trend = Math.pow(1 + drift, m / 12);
+      const cycle = 1 + amp * Math.sin(phase);
+      prices[m] = Math.max(100, p0 * trend * cycle);
+    }
+  }
+  return prices;
+}
+
+function model(overrides = {}) {
+  const s = { ...state, ...overrides };
+  const key = JSON.stringify(s);
+  if (!overrides || Object.keys(overrides).length === 0) {
+    if (modelCache.key === key) return modelCache.result;
+  }
+
+  const prices = getPrices(s.holdMonths);
+  const capex = s.minerCount * s.unitCapex;
+  const fleetHashTH = s.minerCount * s.hashratePerMiner;
+  const fleetPowerKW = s.minerCount * s.powerPerMiner;
+  const networkHashTH = s.networkHashrateEH * 1e6;
+
+  const rows = [];
+  let cumBtcGross = 0, cumBtcNet = 0, cumRevenue = 0, cumOpex = 0, btcHeld = 0, paybackMonth = null;
+
+  // Calculate dynamic halving timing
+  const monthsUntilHalving = getHalvingMonths();
+
+  for (let m = 1; m <= s.holdMonths; m++) {
+    const price = prices[m];
+    let reward = CONFIG.BLOCK_REWARD;
+    // Halving occurs every 48 months; calculate how many halvings have occurred by month m
+    if (m > monthsUntilHalving) reward /= 2;
+    if (m > monthsUntilHalving + CONFIG.HALVING_INTERVAL_MONTHS) reward /= 2;
+
+    const yearFrac = (m - 1) / 12;
+    const degradeFactor = Math.pow(1 - s.degradation / 100, yearFrac);
+    const diffFactor = Math.pow(1 + s.difficultyGrowth / 100, yearFrac);
+    const effectiveHash = fleetHashTH * degradeFactor * (s.uptime / 100);
+    const networkAdj = networkHashTH * diffFactor;
+
+    const dailyBtc = (effectiveHash / networkAdj) * CONFIG.BLOCKS_PER_DAY * reward;
+    const grossBtc = dailyBtc * 30;
+    const poolFeeBtc = grossBtc * (s.poolFee / 100);
+    const netBtc = grossBtc - poolFeeBtc;
+
+    cumBtcGross += grossBtc;
+    cumBtcNet += netBtc;
+
+    const revenue = netBtc * price;
+    const escalatedPower = s.powerCost * Math.pow(1 + (s.powerEscalation || 0) / 100, yearFrac);
+    const powerCost = fleetPowerKW * 24 * 30 * escalatedPower;
+    const hostingCost = revenue * (s.hostingFee / 100);
+    const mgmtCost = revenue * (s.managementFee / 100);
+    const insuranceCost = revenue * (s.insuranceFee / 100);
+    const repairCost = (capex * (s.repairReserve / 100)) / 12;
+    const totalOpex = powerCost + hostingCost + mgmtCost + insuranceCost + repairCost;
+
+    cumRevenue += revenue;
+    cumOpex += totalOpex;
+
+    let netCash = revenue - totalOpex;
+    if (s.reinvestBtc && netCash < 0) {
+      const btcSold = Math.min(netBtc, Math.abs(netCash) / price);
+      btcHeld += netBtc - btcSold;
+    } else {
+      btcHeld += netBtc;
+    }
+
+    const portfolioValue = btcHeld * price;
+    const cumNetValue = portfolioValue - capex - (s.reinvestBtc ? 0 : cumOpex);
+    if (paybackMonth === null && cumNetValue >= 0) paybackMonth = m;
+
+    rows.push({ month: m, price, grossBtc, poolFeeBtc, netBtc, revenue, powerCost, hostingCost, mgmtCost, insuranceCost, repairCost, totalOpex, netCash, btcHeld, cumNetValue });
+  }
+
+  const last = rows[rows.length - 1];
+  const endingBtc = last.btcHeld;
+  const endingPrice = last.price;
+  const endingValue = endingBtc * endingPrice;
+  const resaleAmount = capex * (s.resaleValue / 100);
+  const moicNoResale = capex > 0 ? endingValue / capex : 0;
+  const moic = capex > 0 ? (endingValue + resaleAmount) / capex : 0;
+
+  const cf = [-capex];
+  for (let i = 0; i < rows.length - 1; i++) cf.push(s.reinvestBtc ? 0 : -rows[i].totalOpex);
+  cf.push(endingValue + resaleAmount + (s.reinvestBtc ? 0 : -rows[rows.length - 1].totalOpex));
+  const irrM = calcIRR(cf);
+  const irrA = irrM !== null ? Math.pow(1 + irrM, 12) - 1 : null;
+
+  const cfNoResale = [...cf];
+  cfNoResale[cfNoResale.length - 1] -= resaleAmount;
+  const irrMNoResale = calcIRR(cfNoResale);
+  const irrANoResale = irrMNoResale !== null ? Math.pow(1 + irrMNoResale, 12) - 1 : null;
+
+  // Cash-Matched Buy: Same timing as mining (capex upfront, OPEX at each month's price)
+  let cashMatchedBtc = prices[0] > 0 ? capex / prices[0] : 0;
+  if (!s.reinvestBtc) {
+    for (const r of rows) {
+      if (r.price > 0) cashMatchedBtc += r.totalOpex / r.price;
+    }
+  }
+  const cashMatchedValue = cashMatchedBtc * endingPrice;
+
+  // True DCA: Total cash spread evenly across all months
+  const totalCash = capex + cumOpex;
+  const monthlyDca = totalCash / rows.length;
+  let trueDcaBtc = 0;
+  for (const r of rows) {
+    if (r.price > 0) trueDcaBtc += monthlyDca / r.price;
+  }
+  const trueDcaValue = trueDcaBtc * endingPrice;
+
+  const totalCosts = capex + cumOpex;
+  const costPerBtc = cumBtcNet > 0 ? totalCosts / cumBtcNet : 0;
+
+  const yearlyData = [];
+  for (let y = 1; y <= 5; y++) {
+    const idx = Math.min(y * 12, rows.length) - 1;
+    if (idx >= 0) yearlyData.push({ year: y, btc: rows[idx].btcHeld, price: rows[idx].price, value: rows[idx].btcHeld * rows[idx].price });
+  }
+
+  // V11: NPV calculation
+  const discRate = (s.discountRate || 10) / 100 / 12; // monthly discount rate
+  let npv = -capex;
+  for (let i = 0; i < rows.length; i++) {
+    const cashflow = i === rows.length - 1 ? (endingValue + resaleAmount - rows[i].totalOpex) : -rows[i].totalOpex;
+    npv += cashflow / Math.pow(1 + discRate, i + 1);
+  }
+
+  // V11: Hash price ($/TH/day) for first month
+  const firstRow = rows[0];
+  const hashPriceDay = firstRow ? ((firstRow.netBtc / 30) * firstRow.price / fleetHashTH - (fleetPowerKW * 24 * s.powerCost / fleetHashTH)) : 0;
+
+  // V11: Hash price over time array
+  const hashPriceTimeline = rows.map(r => {
+    const dailyRev = (r.netBtc / 30) * r.price;
+    const yf = (r.month - 1) / 12;
+    const escPwr = s.powerCost * Math.pow(1 + (s.powerEscalation || 0) / 100, yf);
+    const dailyPwr = fleetPowerKW * 24 * escPwr;
+    return (dailyRev - dailyPwr) / fleetHashTH;
+  });
+
+  // V11: Breakeven BTC price (binary search for MOIC = 1.0)
+  let breakevenPrice = 0;
+  if (cumBtcNet > 0) {
+    breakevenPrice = (capex + cumOpex) / cumBtcNet; // simplified: total costs / total BTC
+  }
+
+  // V11: Debt calculations
+  let debtPayment = 0, totalDebtCost = 0, dscr = 0;
+  if (s.debtEnabled && s.loanAmount > 0 && s.loanRate > 0 && s.loanTerm > 0) {
+    const mr = s.loanRate / 100 / 12;
+    const n = s.loanTerm;
+    debtPayment = s.loanAmount * (mr * Math.pow(1 + mr, n)) / (Math.pow(1 + mr, n) - 1);
+    totalDebtCost = debtPayment * n;
+    const annualEbitda = rows.length >= 12 ? rows.slice(0, 12).reduce((a, r) => a + r.netCash, 0) : cumRevenue - cumOpex;
+    dscr = (debtPayment * 12) > 0 ? annualEbitda / (debtPayment * 12) : 0;
+  }
+
+  // V11: Tax calculations
+  let afterTaxIrr = irrANoResale, totalTax = 0;
+  if (s.taxEnabled && s.taxRate > 0) {
+    const rate = s.taxRate / 100;
+    const annualDep = capex / (s.depreciationYears || 5);
+    const taxCf = [-capex];
+    for (let y = 0; y < Math.ceil(rows.length / 12); y++) {
+      const slice = rows.slice(y * 12, (y + 1) * 12);
+      const yearRev = slice.reduce((a, r) => a + r.revenue, 0);
+      const yearOpex = slice.reduce((a, r) => a + r.totalOpex, 0);
+      const dep = y < (s.depreciationYears || 5) ? annualDep : 0;
+      const taxableIncome = Math.max(0, yearRev - yearOpex - dep);
+      const tax = taxableIncome * rate;
+      totalTax += tax;
+      for (let m = 0; m < slice.length - 1; m++) taxCf.push(-slice[m].totalOpex - tax / 12);
+      if (slice.length > 0) {
+        const lastM = y === Math.ceil(rows.length / 12) - 1;
+        taxCf.push(lastM ? (endingValue + resaleAmount - slice[slice.length - 1].totalOpex - tax / 12) : (-slice[slice.length - 1].totalOpex - tax / 12));
+      }
+    }
+    const taxIrrM = calcIRR(taxCf);
+    afterTaxIrr = taxIrrM !== null ? Math.pow(1 + taxIrrM, 12) - 1 : null;
+  }
+
+  const result = { rows, prices, capex, fleetHashTH, fleetPowerKW, endingBtc, endingPrice, endingValue, resaleAmount, moic, moicNoResale, irrA, irrANoResale, paybackMonth, cumBtcGross, cumBtcNet, cumRevenue, cumOpex, cashMatchedBtc, cashMatchedValue, trueDcaBtc, trueDcaValue, costPerBtc, yearlyData, npv, hashPriceDay, hashPriceTimeline, breakevenPrice, debtPayment, totalDebtCost, dscr, afterTaxIrr, totalTax };
+
+  if (!overrides || Object.keys(overrides).length === 0) modelCache = { key, result };
+  return result;
+}
+
+function calcIRR(cf) {
+  let hasNeg = false, hasPos = false;
+  for (const c of cf) { if (c < 0) hasNeg = true; if (c > 0) hasPos = true; }
+  if (!hasNeg || !hasPos) return null;
+  const npv = r => cf.reduce((a, c, i) => a + c / Math.pow(1 + r, i), 0);
+  let lo = -0.99, hi = 2;
+  for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (npv(m) > 0) lo = m; else hi = m; }
+  return (lo + hi) / 2;
+}
+
+function modelWith(adj) {
+  const saved = JSON.parse(JSON.stringify(state));
+  Object.assign(state, adj);
+  const out = model();
+  state = saved;
+  return out;
+}
+
+function updateAll() {
+  const out = model();
+  const sym = symbolFor(state.currency);
+
+  // Capex
+  $('capexDisplay').textContent = `Hardware Capex: ${sym}${fmtMoney(toDisplay(out.capex))}`;
+
+  // Executive
+  $('heroMoic').textContent = fmtNum(out.moicNoResale, 2) + 'x';
+  // V11: Show after-tax IRR when tax is enabled, otherwise pre-tax
+  if (state.taxEnabled && state.taxRate > 0) {
+    $('heroIrr').textContent = out.afterTaxIrr !== null ? fmtPct(out.afterTaxIrr, 1) : 'N/A';
+    $('heroIrrSub').textContent = `IRR (after ${state.taxRate}% tax)`;
+  } else {
+    $('heroIrr').textContent = out.irrANoResale !== null ? fmtPct(out.irrANoResale, 1) : 'N/A';
+    $('heroIrrSub').textContent = 'IRR (pre-tax)';
+  }
+  $('heroPayback').textContent = out.paybackMonth || '>60';
+
+  // V11: New hero metrics
+  $('heroNpv').textContent = `${sym}${fmtMoney(toDisplay(out.npv))}`;
+  $('heroNpv').style.color = out.npv >= 0 ? 'var(--success)' : 'var(--danger)';
+  $('heroNpvSub').textContent = `at ${state.discountRate}% discount rate`;
+  $('heroBreakeven').textContent = `${sym}${fmtMoney(toDisplay(out.breakevenPrice))}`;
+  $('heroHashPrice').textContent = `$${out.hashPriceDay.toFixed(4)}`;
+  $('heroHashPrice').style.color = out.hashPriceDay >= 0 ? 'var(--success)' : 'var(--danger)';
+
+  // V11: NPV display in sidebar
+  if ($('npvDisplay')) $('npvDisplay').textContent = `${sym}${fmtMoney(toDisplay(out.npv))}`;
+  $('npvDisplay').style.color = out.npv >= 0 ? 'var(--success)' : 'var(--danger)';
+
+  // V11: Tax displays
+  if ($('afterTaxIrrDisplay')) {
+    if (state.taxEnabled && state.taxRate > 0) {
+      $('afterTaxIrrDisplay').textContent = out.afterTaxIrr !== null ? fmtPct(out.afterTaxIrr, 1) : '—';
+      $('afterTaxIrrDisplay').style.color = (out.afterTaxIrr !== null && out.afterTaxIrr > 0) ? 'var(--success)' : 'var(--danger)';
+    } else if (state.taxEnabled && state.taxRate === 0) {
+      $('afterTaxIrrDisplay').textContent = 'No tax (0%)';
+      $('afterTaxIrrDisplay').style.color = 'var(--muted)';
+    } else {
+      $('afterTaxIrrDisplay').textContent = '—';
+      $('afterTaxIrrDisplay').style.color = '';
+    }
+  }
+  if ($('totalTaxDisplay')) {
+    $('totalTaxDisplay').textContent = state.taxEnabled && out.totalTax > 0 ? `${sym}${fmtMoney(toDisplay(out.totalTax))}` : '—';
+  }
+
+  updateScorecard(out);
+  updateExecutiveComparison(out, sym);
+  updateTimeline(out, sym);
+  updateOverview(out, sym);
+  updateDashboard(out, sym);
+  updateCashflow(out, sym);
+  updateCharts(out);
+  updatePriceDisplays();
+  updateTicker(out, sym);
+  updateTraditionalAssets(out, sym);
+}
+
+function updateScorecard(out) {
+  const moic = out.moicNoResale;
+  let mClass = moic >= 2 ? 'pass' : moic >= 1.5 ? 'pass' : moic >= 1 ? 'warn' : 'fail';
+  $('scoreMoicIcon').className = `scorecard-icon ${mClass}`;
+  $('scoreMoicIcon').textContent = mClass === 'pass' ? '✓' : mClass === 'warn' ? '!' : '✗';
+  $('scoreMoicText').textContent = moic >= 2 ? `Excellent (${fmtNum(moic)}x)` : moic >= 1.5 ? `Good (${fmtNum(moic)}x)` : moic >= 1 ? `Moderate (${fmtNum(moic)}x)` : `Below target (${fmtNum(moic)}x)`;
+
+  const pb = out.paybackMonth || 999;
+  let pClass = pb <= 24 ? 'pass' : pb <= 36 ? 'warn' : 'fail';
+  $('scorePaybackIcon').className = `scorecard-icon ${pClass}`;
+  $('scorePaybackIcon').textContent = pClass === 'pass' ? '✓' : pClass === 'warn' ? '!' : '✗';
+  $('scorePaybackText').textContent = pb <= 24 ? `Within 24 mo (${pb})` : pb <= 36 ? `Extended (${pb} mo)` : pb < 999 ? `Long (${pb} mo)` : 'Not achieved';
+
+  const costRatio = out.costPerBtc / getBtcPrice();
+  let cClass = costRatio < 0.6 ? 'pass' : costRatio < 0.9 ? 'warn' : 'fail';
+  $('scoreCostIcon').className = `scorecard-icon ${cClass}`;
+  $('scoreCostIcon').textContent = cClass === 'pass' ? '✓' : cClass === 'warn' ? '!' : '✗';
+  $('scoreCostText').textContent = costRatio < 1 ? `${((1 - costRatio) * 100).toFixed(0)}% below market` : 'Above market';
+
+  const compareBtc = state.compareMode === 'dca' ? out.trueDcaBtc : out.cashMatchedBtc;
+  const miningAdv = out.endingBtc - compareBtc;
+  const advPct = compareBtc > 0 ? miningAdv / compareBtc : 0;
+  let aClass = advPct > 0.1 ? 'pass' : advPct > 0 ? 'warn' : 'fail';
+  $('scoreEdgeIcon').className = `scorecard-icon ${aClass}`;
+  $('scoreEdgeIcon').textContent = aClass === 'pass' ? '✓' : aClass === 'warn' ? '!' : '✗';
+  $('scoreEdgeText').textContent = advPct > 0 ? `+${(advPct * 100).toFixed(0)}% advantage` : `${(advPct * 100).toFixed(0)}% disadvantage`;
+
+  const scores = [mClass, pClass, cClass, aClass];
+  const passCount = scores.filter(s => s === 'pass').length;
+  const grade = passCount >= 4 ? 'Excellent' : passCount >= 3 ? 'Good' : passCount >= 2 ? 'Fair' : 'Review Needed';
+  const gClass = passCount >= 4 ? 'excellent' : passCount >= 3 ? 'good' : passCount >= 2 ? 'fair' : 'poor';
+  $('investmentGrade').textContent = grade;
+  $('investmentGrade').className = `grade-badge ${gClass}`;
+}
+
+function updateExecutiveComparison(out, sym) {
+  const isDca = state.compareMode === 'dca';
+  const compareBtc = isDca ? out.trueDcaBtc : out.cashMatchedBtc;
+  const compareValue = isDca ? out.trueDcaValue : out.cashMatchedValue;
+  const compareLabel = isDca ? 'True DCA' : 'Cash-Matched Buy';
+  const compareNote = isDca
+    ? 'True DCA: Total cash spread evenly across all months.'
+    : 'Cash-Matched Buy: Same timing as mining (capex upfront, OPEX at each month\'s price).';
+
+  $('execMiningBtc').textContent = fmtBtc(out.endingBtc, 4);
+  $('execMiningValue').textContent = `${sym}${fmtMoney(toDisplay(out.endingValue))}`;
+  $('execBuyBtc').textContent = fmtBtc(compareBtc, 4);
+  $('execBuyValue').textContent = `${sym}${fmtMoney(toDisplay(compareValue))}`;
+  $('buyingCardTitle').textContent = compareLabel;
+  $('compareModeNote').textContent = compareNote;
+
+  const mWins = out.endingBtc > compareBtc;
+  $('miningCard').classList.toggle('winner', mWins);
+  $('buyingCard').classList.toggle('winner', !mWins);
+
+  const adv = out.endingBtc - compareBtc;
+  $('execAdvValue').textContent = (adv >= 0 ? '+' : '') + fmtBtc(adv, 4) + ' BTC';
+  $('execAdvValue').style.color = adv >= 0 ? 'var(--success)' : 'var(--danger)';
+  $('execAdvDetail').textContent = `≈ ${sym}${fmtMoney(Math.abs(toDisplay(adv * out.endingPrice)))} ${adv >= 0 ? 'additional' : 'less'} value`;
+  $('advantageCard').style.background = adv >= 0 ? 'rgba(52,211,153,.08)' : 'rgba(248,113,113,.08)';
+
+  const priceModelDesc = state.priceModel === 'custom' ? `Custom Annual` : `Cycle (${state.priceDrift}% drift)`;
+  $('execAssumptions').innerHTML = `<strong>Miners:</strong> ${state.minerCount} × ${state.hashratePerMiner} TH/s • <strong>Capex:</strong> ${sym}${fmtMoney(toDisplay(out.capex))} • <strong>Power:</strong> $${state.powerCost}/kWh • <strong>Price Model:</strong> ${priceModelDesc}`;
+}
+
+function updateTimeline(out, sym) {
+  const el = $('execTimeline');
+  el.innerHTML = '';
+  const curYr = Math.ceil(state.holdMonths / 12);
+  out.yearlyData.forEach(y => {
+    const div = document.createElement('div');
+    div.className = `timeline-year${y.year === curYr ? ' current' : ''}`;
+    div.innerHTML = `<div class="yr">Y${y.year}</div><div class="btc">${fmtBtc(y.btc, 3)}</div><div class="val">${sym}${fmtMoney(toDisplay(y.value))}</div>`;
+    el.appendChild(div);
+  });
+}
+
+function updateOverview(out, sym) {
+  $('ovRevenue').textContent = `${sym}${fmtMoney(toDisplay(out.cumRevenue))}`;
+  $('ovCosts').textContent = `${sym}${fmtMoney(toDisplay(out.capex + out.cumOpex))}`;
+  const netCash = out.cumRevenue - out.cumOpex - out.capex + out.resaleAmount;
+  $('ovNetCash').textContent = `${sym}${fmtMoney(toDisplay(netCash))}`;
+  $('ovNetCash').style.color = netCash >= 0 ? 'var(--success)' : 'var(--danger)';
+  $('ovIrr').textContent = out.irrA !== null ? fmtPct(out.irrA, 1) : 'N/A';
+  $('ovMoic').textContent = fmtNum(out.moic, 2) + 'x';
+  $('ovBtcMined').textContent = fmtBtc(out.endingBtc, 4);
+
+  const isDca = state.compareMode === 'dca';
+  const compareBtc = isDca ? out.trueDcaBtc : out.cashMatchedBtc;
+  const compareValue = isDca ? out.trueDcaValue : out.cashMatchedValue;
+  const compareLabel = isDca ? 'True DCA' : 'Cash-Matched Buy';
+  const compareNote = isDca
+    ? 'True DCA: Total cash spread evenly across all months.'
+    : 'Cash-Matched Buy: Same timing as mining (capex upfront, OPEX at each month\'s price).';
+
+  $('ovMiningBtc').textContent = fmtBtc(out.endingBtc, 4);
+  $('ovMiningValue').textContent = `${sym}${fmtMoney(toDisplay(out.endingValue))}`;
+  $('ovBuyBtc').textContent = fmtBtc(compareBtc, 4);
+  $('ovBuyValue').textContent = `${sym}${fmtMoney(toDisplay(compareValue))}`;
+  $('ovBuyingCardTitle').textContent = compareLabel;
+  $('ovCompareModeNote').textContent = compareNote;
+  $('ovMiningCard').classList.toggle('winner', out.endingBtc > compareBtc);
+  $('ovBuyingCard').classList.toggle('winner', compareBtc > out.endingBtc);
+
+  $('ovCostPerBtc').textContent = `${sym}${fmtMoney(toDisplay(out.costPerBtc))}`;
+  $('ovMarketPrice').textContent = `${sym}${fmtMoney(toDisplay(getBtcPrice()))}`;
+  const margin = getBtcPrice() > 0 ? (getBtcPrice() - out.costPerBtc) / getBtcPrice() * 100 : 0;
+  $('ovMargin').textContent = margin >= 0 ? `+${margin.toFixed(0)}%` : `${margin.toFixed(0)}%`;
+  $('ovMargin').style.color = margin >= 0 ? 'var(--success)' : 'var(--danger)';
+
+  const yearlyEl = $('yearlyTiles');
+  yearlyEl.innerHTML = '';
+  out.yearlyData.forEach(y => {
+    const div = document.createElement('div');
+    div.className = 'tile';
+    const yoy = y.year > 1 && out.yearlyData[y.year - 2] ? ((y.price / out.yearlyData[y.year - 2].price - 1) * 100) : ((y.price / getBtcPrice() - 1) * 100);
+    div.innerHTML = `<h4>Year ${y.year}</h4><p>${sym}${fmtMoney(toDisplay(y.value))}</p><div class="sub">BTC: ${fmtBtc(y.btc, 4)}</div><div class="sub">Price YoY: ${yoy >= 0 ? '+' : ''}${yoy.toFixed(1)}%</div>`;
+    yearlyEl.appendChild(div);
+  });
+}
+
+function updateDashboard(out, sym) {
+  const simM = Math.min(12, state.holdMonths);
+  const curr = out.rows[simM - 1] || out.rows[0];
+  const btcPrice = getBtcPrice();
+
+  // Top KPI tiles
+  $('dashBtcMined').textContent = fmtBtc(curr.btcHeld, 4);
+  $('dashBtcChange').textContent = `+${fmtBtc(curr.netBtc, 4)} this month`;
+  $('dashPortfolioValue').textContent = `${sym}${fmtMoney(toDisplay(curr.btcHeld * curr.price))}`;
+  const ret = ((curr.btcHeld * curr.price - out.capex) / out.capex) * 100;
+  $('dashPortfolioChange').textContent = `${ret >= 0 ? '+' : ''}${ret.toFixed(1)}% vs capex`;
+  $('dashHashrate').textContent = `${fmtMoney(out.fleetHashTH)} TH/s`;
+  $('dashUptimeStatus').textContent = `${state.uptime}% uptime`;
+  $('dashCostPerBtc').textContent = `${sym}${fmtMoney(toDisplay(out.costPerBtc))}`;
+  const margin = (1 - out.costPerBtc / btcPrice) * 100;
+  $('dashCostMargin').textContent = `${margin >= 0 ? margin.toFixed(0) + '% below' : Math.abs(margin).toFixed(0) + '% above'} market`;
+
+  // Break-even progress
+  const breakEvenPct = out.breakevenMonth > 0 ? Math.min(100, (simM / out.breakevenMonth) * 100) : (curr.cumNetValue >= 0 ? 100 : (curr.btcHeld * curr.price / out.capex) * 100);
+  $('dashBreakevenPct').textContent = `${breakEvenPct.toFixed(0)}%`;
+  $('dashBreakevenBar').style.width = `${Math.min(100, breakEvenPct)}%`;
+  const remaining = out.breakevenMonth > simM ? out.breakevenMonth - simM : 0;
+  $('dashBreakevenRemaining').textContent = remaining > 0 ? `Estimated ${remaining} months remaining` : 'Break-even achieved!';
+
+  // Period statistics (based on simulated period)
+  const periodRows = out.rows.slice(0, simM);
+  const sumGross = periodRows.reduce((a, r) => a + r.grossBtc, 0);
+  const sumPoolFee = periodRows.reduce((a, r) => a + r.poolFeeBtc, 0);
+  const sumNet = periodRows.reduce((a, r) => a + r.netBtc, 0);
+  const sumPower = periodRows.reduce((a, r) => a + r.powerCost, 0);
+  const sumOpFees = periodRows.reduce((a, r) => a + r.hostingCost + r.mgmtCost + r.insuranceCost + r.repairCost, 0);
+  const sumNetCash = periodRows.reduce((a, r) => a + r.netCash, 0);
+
+  $('dashGrossBtc').textContent = fmtBtc(sumGross, 4);
+  $('dashPoolFees').textContent = `-${fmtBtc(sumPoolFee, 4)}`;
+  $('dashNetBtc').textContent = fmtBtc(sumNet, 4);
+  $('dashPowerCosts').textContent = `${sym}${fmtMoney(toDisplay(sumPower))}`;
+  $('dashOpFees').textContent = `${sym}${fmtMoney(toDisplay(sumOpFees))}`;
+  $('dashNetIncome').textContent = `${sym}${fmtMoney(toDisplay(sumNetCash))}`;
+  $('dashNetIncome').style.color = sumNetCash >= 0 ? 'var(--success)' : 'var(--danger)';
+
+  // Activity feed (simulated based on model)
+  const lastRow = out.rows[simM - 1] || out.rows[0];
+  $('dashActivityBlock').textContent = `+${fmtBtc(lastRow.netBtc / 30, 5)} BTC • 2 hours ago`;
+  $('dashActivityPower').textContent = `-${sym}${fmtMoney(toDisplay(lastRow.powerCost))} • Yesterday`;
+  $('dashActivityDiff').textContent = `+${(state.difficultyGrowth / 12).toFixed(1)}% increase • 3 days ago`;
+
+  // Bottom tiles
+  const year1Rows = out.rows.slice(0, Math.min(12, out.rows.length));
+  const year1Btc = year1Rows.reduce((a, r) => a + r.netBtc, 0);
+  const year1EndPrice = year1Rows[year1Rows.length - 1]?.price || btcPrice;
+  $('dashYearEndBtc').textContent = fmtBtc(year1Btc, 3);
+  $('dashYearEndValue').textContent = `${sym}${fmtMoney(toDisplay(year1Btc * year1EndPrice))}`;
+
+  const hashShare = (out.fleetHashTH / (state.networkHashrateEH * 1e6)) * 100;
+  $('dashHashShare').textContent = `${hashShare.toFixed(6)}%`;
+
+  const efficiency = (state.powerPerMiner * 1000) / state.hashratePerMiner;
+  $('dashEfficiency').textContent = `${efficiency.toFixed(1)} J/TH`;
+}
+
+function updateCashflow(out, sym) {
+  const tbody = $('cashflowBody');
+  tbody.innerHTML = '';
+  const isAnnual = state.cashflowView === 'annual';
+
+  if (isAnnual) {
+    const years = Math.ceil(out.rows.length / 12);
+    for (let y = 0; y < years; y++) {
+      const slice = out.rows.slice(y * 12, (y + 1) * 12);
+      if (!slice.length) continue;
+      const sum = k => slice.reduce((a, r) => a + (r[k] || 0), 0);
+      const last = slice[slice.length - 1];
+      const tr = document.createElement('tr');
+      tr.className = 'year-subtotal';
+      tr.innerHTML = `<td>Year ${y + 1}</td><td>${fmtBtc(sum('grossBtc'), 4)}</td><td>${fmtBtc(sum('poolFeeBtc'), 4)}</td><td>${fmtBtc(sum('netBtc'), 4)}</td><td>${sym}${fmtMoney(toDisplay(last.price))}</td><td>${sym}${fmtMoney(toDisplay(sum('revenue')))}</td><td>${sym}${fmtMoney(toDisplay(sum('powerCost')))}</td><td>${sym}${fmtMoney(toDisplay(sum('hostingCost')))}</td><td>${sym}${fmtMoney(toDisplay(sum('mgmtCost')))}</td><td>${sym}${fmtMoney(toDisplay(sum('insuranceCost')))}</td><td>${sym}${fmtMoney(toDisplay(sum('repairCost')))}</td><td style="color:${sum('netCash') >= 0 ? 'var(--success)' : 'var(--danger)'}">${sym}${fmtMoney(toDisplay(sum('netCash')))}</td><td style="color:${last.cumNetValue >= 0 ? 'var(--success)' : 'var(--danger)'}">${sym}${fmtMoney(toDisplay(last.cumNetValue))}</td>`;
+      tbody.appendChild(tr);
+    }
+  } else {
+    out.rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>M${r.month}</td><td>${fmtBtc(r.grossBtc, 5)}</td><td>${fmtBtc(r.poolFeeBtc, 5)}</td><td>${fmtBtc(r.netBtc, 5)}</td><td>${sym}${fmtMoney(toDisplay(r.price))}</td><td>${sym}${fmtMoney(toDisplay(r.revenue))}</td><td>${sym}${fmtMoney(toDisplay(r.powerCost))}</td><td>${sym}${fmtMoney(toDisplay(r.hostingCost))}</td><td>${sym}${fmtMoney(toDisplay(r.mgmtCost))}</td><td>${sym}${fmtMoney(toDisplay(r.insuranceCost))}</td><td>${sym}${fmtMoney(toDisplay(r.repairCost))}</td><td style="color:${r.netCash >= 0 ? 'var(--success)' : 'var(--danger)'}">${sym}${fmtMoney(toDisplay(r.netCash))}</td><td style="color:${r.cumNetValue >= 0 ? 'var(--success)' : 'var(--danger)'}">${sym}${fmtMoney(toDisplay(r.cumNetValue))}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+function updateCharts(out) {
+  const labels = out.rows.map(r => `M${r.month}`);
+  const netValues = out.rows.map(r => r.cumNetValue);
+  const btcHeld = out.rows.map(r => r.btcHeld);
+  const revenues = out.rows.map(r => r.revenue);
+  const costs = out.rows.map(r => r.totalOpex);
+
+  // Shared tick config for cleaner axes - show every 3rd month
+  const cleanXAxis = {
+    grid: { color: 'rgba(47,69,93,.5)' },
+    ticks: { color: '#7a8fa0', maxTicksLimit: 20, callback: function(val, idx) { return (idx % 3 === 0) ? this.getLabelForValue(val) : ''; } }
+  };
+  const cleanYAxis = { grid: { color: 'rgba(47,69,93,.5)' }, ticks: { color: '#7a8fa0' } };
+
+  // Executive chart
+  const ctx1 = $('execChart')?.getContext('2d');
+  if (ctx1) {
+    if (charts.exec) charts.exec.destroy();
+    charts.exec = new Chart(ctx1, { type: 'line', data: { labels, datasets: [{ label: 'Net Value', data: netValues, borderColor: netValues[netValues.length - 1] >= 0 ? '#34D399' : '#F87171', backgroundColor: netValues[netValues.length - 1] >= 0 ? 'rgba(52,211,153,.1)' : 'rgba(248,113,113,.1)', fill: true, tension: 0.3, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: cleanXAxis, y: cleanYAxis } } });
+  }
+
+  // Profitability chart
+  const ctx2 = $('profitabilityChart')?.getContext('2d');
+  if (ctx2) {
+    if (charts.profit) charts.profit.destroy();
+    let cumRev = 0, cumProfit = 0, cumPower = 0;
+    const cumRevData = out.rows.map(r => { cumRev += r.revenue; return cumRev; });
+    const cumProfitData = out.rows.map(r => { cumProfit += r.netCash; return cumProfit; });
+    const cumPowerData = out.rows.map(r => { cumPower += r.powerCost; return cumPower; });
+    charts.profit = new Chart(ctx2, { type: 'line', data: { labels, datasets: [{ label: 'Cumulative Revenue', data: cumRevData, borderColor: '#34D399', fill: false, tension: 0.3, pointRadius: 0 }, { label: 'Cumulative Profit', data: cumProfitData, borderColor: '#d6b389', fill: false, tension: 0.3, pointRadius: 0 }, { label: 'Cumulative Power', data: cumPowerData, borderColor: '#F87171', fill: false, tension: 0.3, pointRadius: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#7a8fa0' } } }, scales: { x: cleanXAxis, y: cleanYAxis } } });
+  }
+
+  // Dashboard accumulation chart
+  const ctx3 = $('dashAccumChart')?.getContext('2d');
+  if (ctx3) {
+    if (charts.dashAccum) charts.dashAccum.destroy();
+    charts.dashAccum = new Chart(ctx3, { type: 'line', data: { labels, datasets: [{ label: 'BTC Held', data: btcHeld, borderColor: '#d6b389', backgroundColor: 'rgba(214,179,137,.1)', fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: '#d6b389' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: cleanXAxis, y: cleanYAxis } } });
+  }
+
+  // Dashboard revenue vs costs chart
+  const ctx4 = $('dashRevenueChart')?.getContext('2d');
+  if (ctx4) {
+    if (charts.dashRev) charts.dashRev.destroy();
+    const barLabels = labels.slice(0, 24);
+    charts.dashRev = new Chart(ctx4, { type: 'bar', data: { labels: barLabels, datasets: [{ label: 'Revenue', data: revenues.slice(0, 24), backgroundColor: 'rgba(52,211,153,.6)' }, { label: 'Costs', data: costs.slice(0, 24), backgroundColor: 'rgba(248,113,113,.6)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#7a8fa0' } } }, scales: { x: { grid: { display: false }, ticks: { color: '#7a8fa0', maxTicksLimit: 12, callback: function(val, idx) { return (idx % 2 === 0) ? this.getLabelForValue(val) : ''; } } }, y: cleanYAxis } } });
+  }
+
+  // V11: New charts
+  const sym = symbolFor(state.currency);
+  renderCostPieCharts(out, sym);
+  renderWaterfallChart(out, sym);
+  renderHashPriceChart(out);
+}
+
+function updatePriceDisplays() {
+  const sym = symbolFor(state.currency);
+  const p0 = getBtcPrice();
+  const prices = getPrices(60);
+  [1, 2, 3, 4, 5].forEach(y => {
+    const el = $(`priceY${y}Display`);
+    if (el) {
+      const p = prices[y * 12] || p0;
+      el.textContent = `${sym}${fmtMoney(toDisplay(p))}`;
+      el.classList.toggle('negative', p < p0);
+    }
+  });
+  $('cycleDetails').textContent = `${state.priceDrift}% drift, ±${state.priceCycleAmp}% amplitude`;
+
+  // Sparkline
+  const ctx = $('priceSparkline')?.getContext('2d');
+  if (ctx && state.priceModel === 'custom') {
+    if (charts.sparkline) charts.sparkline.destroy();
+    const data = [p0];
+    for (let y = 1; y <= 5; y++) data.push(prices[y * 12] || p0);
+    charts.sparkline = new Chart(ctx, { type: 'line', data: { labels: ['Start', 'Y1', 'Y2', 'Y3', 'Y4', 'Y5'], datasets: [{ data, borderColor: '#d6b389', borderWidth: 2, fill: false, tension: 0.3, pointRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } } });
+  }
+}
+
+function renderSensitivity() {
+  const sym = symbolFor(state.currency);
+  const basePrice = getBtcPrice();
+  const baseDiff = state.difficultyGrowth;
+  const basePower = state.powerCost;
+
+  const priceScens = [{ label: '-30%', mult: 0.7 }, { label: '-15%', mult: 0.85 }, { label: 'Base', mult: 1 }, { label: '+15%', mult: 1.15 }, { label: '+30%', mult: 1.3 }];
+  const diffScens = [5, 15, 25, 35];
+
+  const tbody = $('sensitivityBody');
+  tbody.innerHTML = '';
+
+  for (const ps of priceScens) {
+    const tr = document.createElement('tr');
+    const adjPrice = Math.round(basePrice * ps.mult);
+    let cells = [`<td><strong>${ps.label}</strong><br><span class="muted">${sym}${adjPrice.toLocaleString()}</span></td>`];
+
+    for (const diff of diffScens) {
+      const adj = { difficultyGrowth: diff, btcOverride: String(adjPrice) };
+      if (state.priceModel === 'custom') {
+        adj.priceY1 = Math.round(state.priceY1 * ps.mult);
+        adj.priceY2 = Math.round(state.priceY2 * ps.mult);
+        adj.priceY3 = Math.round(state.priceY3 * ps.mult);
+        adj.priceY4 = Math.round(state.priceY4 * ps.mult);
+        adj.priceY5 = Math.round(state.priceY5 * ps.mult);
+      }
+      const out = modelWith(adj);
+      const moic = out.moicNoResale;
+      let style = moic >= 1.5 ? 'background:rgba(52,211,153,.15);color:#34d399' : moic >= 1 ? 'background:rgba(251,191,36,.1)' : 'background:rgba(248,113,113,.15);color:#f87171';
+      const isCurrent = Math.abs(diff - baseDiff) < 3 && Math.abs(ps.mult - 1) < 0.05;
+      if (isCurrent) style = 'background:rgba(96,165,250,.2);border:2px solid rgba(96,165,250,.5)';
+      cells.push(`<td style="${style}"><strong>${fmtNum(moic, 2)}x</strong></td>`);
+    }
+    tr.innerHTML = cells.join('');
+    tbody.appendChild(tr);
+  }
+
+  // Power sensitivity - uses Cash-Adjusted MOIC to show power cost impact
+  const tbody2 = $('powerSensitivityBody');
+  if (tbody2) {
+    tbody2.innerHTML = '';
+    const powerScens = [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.10];
+    for (const pwr of powerScens) {
+      const out = modelWith({ powerCost: pwr });
+      // Cash-Adjusted MOIC = (BTC Value + Net Cash Position) / Capex
+      // Net Cash Position = cumRevenue - cumOpex (negative if cash outflow exceeds revenue)
+      const netCashPosition = out.cumRevenue - out.cumOpex;
+      const totalValue = out.endingValue + netCashPosition;
+      const cashAdjMoic = out.capex > 0 ? totalValue / out.capex : 0;
+      const monthlyOpex = out.rows.length > 0 ? out.rows[0].totalOpex : 0;
+      const breakeven = out.cumBtcNet > 0 ? (out.capex + out.cumOpex) / out.cumBtcNet : 0;
+      const tr = document.createElement('tr');
+      const isCurrent = Math.abs(pwr - basePower) < 0.005;
+      const rowStyle = isCurrent ? 'background:rgba(96,165,250,.1)' : '';
+      const moicColor = cashAdjMoic >= 1.5 ? 'color:#34d399' : cashAdjMoic < 1 ? 'color:#f87171' : '';
+      tr.innerHTML = `<td style="${rowStyle}"><strong>${sym}${pwr.toFixed(2)}</strong>${isCurrent ? ' <span class="muted">(current)</span>' : ''}</td><td style="${rowStyle};${moicColor}"><strong>${fmtNum(cashAdjMoic, 2)}x</strong></td><td style="${rowStyle}">${sym}${fmtMoney(toDisplay(monthlyOpex))}</td><td style="${rowStyle}">${sym}${fmtMoney(toDisplay(breakeven))}</td>`;
+      tbody2.appendChild(tr);
+    }
+  }
+}
+
+function randn() { let u = 0, v = 0; while (u === 0) u = Math.random(); while (v === 0) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+async function runMonteCarlo(runs = 1000) {
+  const scen = SCENARIOS[state.scenario] || SCENARIOS.base;
+  const saved = JSON.parse(JSON.stringify(state));
+  const basePrice = getBtcPrice();
+
+  $('mcProgress').style.display = 'block';
+  $('mcProgressBar').style.width = '0%';
+  $('rerunMC').textContent = 'Running...';
+  $('rerunMC').disabled = true;
+
+  let countMoic = 0, countBE = 0, sumBtc = 0;
+  const moicResults = [];
+
+  const batchSize = 50;
+  for (let done = 0; done < runs;) {
+    const end = Math.min(done + batchSize, runs);
+    for (let i = done; i < end; i++) {
+      state.priceDrift = clamp(scen.drift + randn() * 10, -30, 80);
+      state.priceCycleAmp = clamp(scen.amp + randn() * 15, 0, 120);
+      state.difficultyGrowth = clamp(saved.difficultyGrowth + randn() * 10, -20, 80);
+      state.btcOverride = String(basePrice);
+
+      const out = model();
+      const m18 = Math.min(18, out.rows.length);
+      const net18 = m18 > 0 ? out.rows[m18 - 1].cumNetValue : -out.capex;
+      if (out.moic > 1.5) countMoic++;
+      if (net18 >= 0) countBE++;
+      sumBtc += out.endingBtc;
+      moicResults.push(out.moicNoResale);
+    }
+    done = end;
+    $('mcProgressBar').style.width = `${(done / runs) * 100}%`;
+    $('mcProbMoic').textContent = fmtNum(100 * countMoic / done, 1);
+    $('mcProbBreakeven').textContent = fmtNum(100 * countBE / done, 1);
+    $('mcAvgBtc').textContent = fmtBtc(sumBtc / done, 4);
+    await new Promise(r => requestAnimationFrame(r));
+  }
+
+  state = saved;
+  $('mcProgress').style.display = 'none';
+  $('rerunMC').textContent = 'Re-run Monte Carlo';
+  $('rerunMC').disabled = false;
+
+  // Histogram
+  const ctx = $('mcChart')?.getContext('2d');
+  if (ctx) {
+    if (charts.mc) charts.mc.destroy();
+    const buckets = {};
+    moicResults.forEach(m => { const b = Math.floor(m * 4) / 4; buckets[b] = (buckets[b] || 0) + 1; });
+    const labels = Object.keys(buckets).sort((a, b) => a - b);
+    const data = labels.map(l => buckets[l]);
+    charts.mc = new Chart(ctx, { type: 'bar', data: { labels: labels.map(l => l + 'x'), datasets: [{ label: 'Frequency', data, backgroundColor: 'rgba(214,179,137,.6)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#7a8fa0' } }, y: { grid: { color: 'rgba(47,69,93,.5)' }, ticks: { color: '#7a8fa0' } } } } });
+  }
+}
+
+// ═══ V11: NEW RENDERING FUNCTIONS ═══
+
+function updateTicker(out, sym) {
+  const moic = out.moicNoResale;
+  $('tickerMoic').textContent = fmtNum(moic, 2) + 'x';
+  $('tickerMoic').className = 'ticker-value ' + (moic >= 1.5 ? 'positive' : moic < 1 ? 'negative' : '');
+  $('tickerIrr').textContent = out.irrANoResale !== null ? fmtPct(out.irrANoResale, 1) : 'N/A';
+  $('tickerIrr').className = 'ticker-value ' + (out.irrANoResale > 0.15 ? 'positive' : out.irrANoResale < 0 ? 'negative' : '');
+  $('tickerBtc').textContent = fmtBtc(out.endingBtc, 4);
+  $('tickerHashPrice').textContent = '$' + out.hashPriceDay.toFixed(4);
+  $('tickerHashPrice').className = 'ticker-value ' + (out.hashPriceDay > 0 ? 'positive' : 'negative');
+  $('tickerNpv').textContent = sym + fmtMoney(toDisplay(out.npv));
+  $('tickerNpv').className = 'ticker-value ' + (out.npv >= 0 ? 'positive' : 'negative');
+  $('tickerBtcPrice').textContent = sym + fmtMoney(toDisplay(getBtcPrice()));
+}
+
+function updateTraditionalAssets(out, sym) {
+  const holdYears = state.holdMonths / 12;
+  const totalInvested = out.capex + out.cumOpex;
+  const miningMoic = out.moicNoResale;
+
+  // BTC spot hold: buy at start price, value at end price
+  const btcHoldMoic = out.endingPrice / getBtcPrice();
+
+  // S&P 500: ~10% CAGR historically
+  const spMoic = Math.pow(1.10, holdYears);
+
+  // Real Estate: ~7% CAGR
+  const reMoic = Math.pow(1.07, holdYears);
+
+  // Bonds: ~4% CAGR
+  const bondsMoic = Math.pow(1.04, holdYears);
+
+  $('tradMiningReturn').textContent = fmtNum(miningMoic, 2) + 'x';
+  $('tradMiningReturn').style.color = miningMoic >= 1.5 ? 'var(--success)' : miningMoic < 1 ? 'var(--danger)' : 'var(--text)';
+  $('tradBtcReturn').textContent = fmtNum(btcHoldMoic, 2) + 'x';
+  $('tradSpReturn').textContent = fmtNum(spMoic, 2) + 'x';
+  $('tradReReturn').textContent = fmtNum(reMoic, 2) + 'x';
+  $('tradBondsReturn').textContent = fmtNum(bondsMoic, 2) + 'x';
+
+  // Highlight winner
+  const all = [
+    { el: 'tradMining', val: miningMoic },
+    { el: 'tradBtcHold', val: btcHoldMoic },
+    { el: 'tradSP500', val: spMoic },
+    { el: 'tradRealEstate', val: reMoic },
+    { el: 'tradBonds', val: bondsMoic }
+  ];
+  const maxVal = Math.max(...all.map(a => a.val));
+  all.forEach(a => {
+    $(a.el).classList.toggle('winner', a.val === maxVal);
+    $(a.el).style.borderColor = a.val === maxVal ? 'var(--success)' : '';
+  });
+
+  // Chart
+  const ctx = $('traditionalAssetsChart')?.getContext('2d');
+  if (ctx) {
+    if (charts.tradAssets) charts.tradAssets.destroy();
+    charts.tradAssets = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['BTC Mining', 'BTC Spot Hold', 'S&P 500', 'Real Estate', 'Bonds'],
+        datasets: [{
+          label: 'MOIC',
+          data: [miningMoic, btcHoldMoic, spMoic, reMoic, bondsMoic],
+          backgroundColor: ['rgba(214,179,137,.7)', 'rgba(96,165,250,.7)', 'rgba(52,211,153,.7)', 'rgba(168,85,247,.7)', 'rgba(251,191,36,.7)'],
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#7a8fa0' } },
+          y: { grid: { color: 'rgba(47,69,93,.5)' }, ticks: { color: '#7a8fa0', callback: v => v + 'x' } }
+        }
+      }
+    });
+  }
+}
+
+function renderCostPieCharts(out, sym) {
+  // CapEx pie (just hardware)
+  const ctx1 = $('capexPieChart')?.getContext('2d');
+  if (ctx1) {
+    if (charts.capexPie) charts.capexPie.destroy();
+    charts.capexPie = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['Hardware CapEx'],
+        datasets: [{ data: [out.capex], backgroundColor: ['rgba(214,179,137,.8)'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#7a8fa0', padding: 12, font: { size: 11 } } } } }
+    });
+  }
+
+  // OpEx pie
+  const ctx2 = $('opexPieChart')?.getContext('2d');
+  if (ctx2) {
+    if (charts.opexPie) charts.opexPie.destroy();
+    const totalPower = out.rows.reduce((a, r) => a + r.powerCost, 0);
+    const totalHosting = out.rows.reduce((a, r) => a + r.hostingCost, 0);
+    const totalMgmt = out.rows.reduce((a, r) => a + r.mgmtCost, 0);
+    const totalInsurance = out.rows.reduce((a, r) => a + r.insuranceCost, 0);
+    const totalRepair = out.rows.reduce((a, r) => a + r.repairCost, 0);
+    const totalPoolBtcVal = out.rows.reduce((a, r) => a + r.poolFeeBtc * r.price, 0);
+
+    const labels = [], data = [], colors = [];
+    if (totalPower > 0) { labels.push('Power'); data.push(totalPower); colors.push('rgba(248,113,113,.8)'); }
+    if (totalPoolBtcVal > 0) { labels.push('Pool Fees'); data.push(totalPoolBtcVal); colors.push('rgba(251,191,36,.8)'); }
+    if (totalHosting > 0) { labels.push('Hosting'); data.push(totalHosting); colors.push('rgba(96,165,250,.8)'); }
+    if (totalMgmt > 0) { labels.push('Management'); data.push(totalMgmt); colors.push('rgba(168,85,247,.8)'); }
+    if (totalInsurance > 0) { labels.push('Insurance'); data.push(totalInsurance); colors.push('rgba(52,211,153,.8)'); }
+    if (totalRepair > 0) { labels.push('Repairs'); data.push(totalRepair); colors.push('rgba(214,179,137,.8)'); }
+    if (data.length === 0) { labels.push('No OpEx'); data.push(1); colors.push('rgba(47,69,93,.5)'); }
+
+    charts.opexPie = new Chart(ctx2, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#7a8fa0', padding: 8, font: { size: 10 } } } } }
+    });
+  }
+}
+
+function renderWaterfallChart(out, sym) {
+  const ctx = $('waterfallChart')?.getContext('2d');
+  if (!ctx) return;
+  if (charts.waterfall) charts.waterfall.destroy();
+
+  const revenue = out.cumRevenue;
+  const power = out.rows.reduce((a, r) => a + r.powerCost, 0);
+  const poolVal = out.rows.reduce((a, r) => a + r.poolFeeBtc * r.price, 0);
+  const otherOpex = out.cumOpex - power;
+  const capex = out.capex;
+  const netProfit = revenue - out.cumOpex - capex;
+
+  // Waterfall using floating bars
+  const items = [
+    { label: 'Revenue', val: revenue, color: 'rgba(52,211,153,.7)' },
+    { label: 'Power', val: -power, color: 'rgba(248,113,113,.7)' },
+    { label: 'Other OpEx', val: -otherOpex, color: 'rgba(251,191,36,.7)' },
+    { label: 'CapEx', val: -capex, color: 'rgba(168,85,247,.7)' },
+    { label: 'Net Profit', val: netProfit, color: netProfit >= 0 ? 'rgba(52,211,153,.9)' : 'rgba(248,113,113,.9)' }
+  ];
+
+  let running = 0;
+  const barData = items.map(item => {
+    const start = item.label === 'Net Profit' ? 0 : running;
+    const end = item.label === 'Net Profit' ? netProfit : running + item.val;
+    if (item.label !== 'Net Profit') running += item.val;
+    return [Math.min(start, end), Math.max(start, end)];
+  });
+
+  charts.waterfall = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: items.map(i => i.label),
+      datasets: [{
+        data: barData,
+        backgroundColor: items.map(i => i.color),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#7a8fa0' } },
+        y: { grid: { color: 'rgba(47,69,93,.5)' }, ticks: { color: '#7a8fa0', callback: v => sym + fmtMoney(toDisplay(v)) } }
+      }
+    }
+  });
+}
+
+function renderHashPriceChart(out) {
+  const ctx = $('hashPriceChart')?.getContext('2d');
+  if (!ctx) return;
+  if (charts.hashPrice) charts.hashPrice.destroy();
+
+  const labels = out.rows.map(r => 'M' + r.month);
+  charts.hashPrice = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '$/TH/day',
+        data: out.hashPriceTimeline,
+        borderColor: '#d6b389',
+        backgroundColor: 'rgba(214,179,137,.1)',
+        fill: true, tension: 0.3, pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(47,69,93,.5)' }, ticks: { color: '#7a8fa0', maxTicksLimit: 20, callback: function(val, idx) { return (idx % 3 === 0) ? this.getLabelForValue(val) : ''; } } },
+        y: { grid: { color: 'rgba(47,69,93,.5)' }, ticks: { color: '#7a8fa0', callback: v => '$' + v.toFixed(4) } }
+      }
+    }
+  });
+}
+
+// V11: Animated counter
+function animateCounter(el, end, duration = 800, prefix = '', suffix = '', decimals = 2) {
+  const start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current = start + (end - start) * eased;
+    el.textContent = prefix + (decimals === 0 ? fmtMoney(current) : current.toFixed(decimals)) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// V11: Splash screen controller
+function updateSplash(pct, text) {
+  const fill = $('splashFill');
+  const status = $('splashStatus');
+  if (fill) fill.style.width = pct + '%';
+  if (status) status.textContent = text;
+}
+
+function hideSplash() {
+  setTimeout(() => {
+    const splash = $('splashScreen');
+    if (splash) splash.classList.add('hidden');
+    // Trigger animated counters on first load
+    const out = model();
+    if (out.moicNoResale) animateCounter($('heroMoic'), out.moicNoResale, 1200, '', 'x');
+  }, 400);
+}
+
+// V11: Theme toggle
+function toggleTheme() {
+  const isDark = !document.body.hasAttribute('data-theme') || document.body.getAttribute('data-theme') === 'dark';
+  document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  $('themeToggle').innerHTML = isDark ? '&#9728;' : '&#9790;';
+  localStorage.setItem('pantheon-theme', isDark ? 'light' : 'dark');
+}
+
+// V11: Walkthrough
+function startWalkthrough() {
+  wtCurrentStep = 0;
+  renderWalkthroughStep();
+  $('walkthroughOverlay').classList.add('active');
+}
+function nextWalkthroughStep() {
+  wtCurrentStep++;
+  if (wtCurrentStep >= WT_STEPS.length) { closeWalkthrough(); return; }
+  renderWalkthroughStep();
+}
+function closeWalkthrough() {
+  $('walkthroughOverlay').classList.remove('active');
+}
+function renderWalkthroughStep() {
+  const step = WT_STEPS[wtCurrentStep];
+  $('wtStepNum').textContent = `Step ${wtCurrentStep + 1} of ${WT_STEPS.length}`;
+  $('wtTitle').textContent = step.title;
+  $('wtText').textContent = step.text;
+  $('wtNextBtn').textContent = wtCurrentStep === WT_STEPS.length - 1 ? 'Finish' : 'Next';
+}
+
+// V11: Presentation Mode
+function startPresentation() {
+  presCurrentSlide = 0;
+  renderPresSlide();
+  $('presOverlay').classList.add('active');
+  document.addEventListener('keydown', presKeyHandler);
+}
+function closePresentation() {
+  $('presOverlay').classList.remove('active');
+  document.removeEventListener('keydown', presKeyHandler);
+}
+function presKeyHandler(e) {
+  if (e.key === 'ArrowRight' || e.key === ' ') presNav(1);
+  else if (e.key === 'ArrowLeft') presNav(-1);
+  else if (e.key === 'Escape') closePresentation();
+}
+function presNav(dir) {
+  const slides = getPresSlides();
+  presCurrentSlide = Math.max(0, Math.min(slides.length - 1, presCurrentSlide + dir));
+  renderPresSlide();
+}
+function getPresSlides() {
+  const out = model();
+  const sym = symbolFor(state.currency);
+  return [
+    { label: 'Return Multiple (MOIC)', value: fmtNum(out.moicNoResale, 2) + 'x', sub: `on ${sym}${fmtMoney(toDisplay(out.capex))} invested`, color: 'var(--accent)' },
+    { label: 'Annualized Return (IRR)', value: out.irrANoResale !== null ? fmtPct(out.irrANoResale, 1) : 'N/A', sub: 'pre-tax internal rate of return', color: out.irrANoResale > 0.15 ? 'var(--success)' : 'var(--text)' },
+    { label: 'Capital Recovery', value: (out.paybackMonth || '>60') + ' months', sub: 'time to full payback', color: out.paybackMonth && out.paybackMonth <= 24 ? 'var(--success)' : 'var(--text)' },
+    { label: 'Net Present Value', value: sym + fmtMoney(toDisplay(out.npv)), sub: `at ${state.discountRate}% discount rate`, color: out.npv >= 0 ? 'var(--success)' : 'var(--danger)' },
+    { label: 'Total BTC Mined', value: fmtBtc(out.endingBtc, 4) + ' BTC', sub: `worth ${sym}${fmtMoney(toDisplay(out.endingValue))} at exit`, color: 'var(--accent)' },
+    { label: 'Hash Price', value: '$' + out.hashPriceDay.toFixed(4) + '/TH/day', sub: 'current mining profitability metric', color: out.hashPriceDay > 0 ? 'var(--success)' : 'var(--danger)' },
+    { label: 'Breakeven BTC Price', value: sym + fmtMoney(toDisplay(out.breakevenPrice)), sub: 'minimum for capital recovery', color: 'var(--text)' },
+    { label: 'Mining vs Buying', value: (out.endingBtc > out.cashMatchedBtc ? '+' : '') + fmtBtc(out.endingBtc - out.cashMatchedBtc, 4) + ' BTC', sub: out.endingBtc > out.cashMatchedBtc ? 'mining advantage over cash-matched buy' : 'buying advantage over mining', color: out.endingBtc > out.cashMatchedBtc ? 'var(--success)' : 'var(--danger)' },
+    { label: 'Thank You', value: 'Pantheon Mining', sub: 'Institutional-Grade Mining Analytics', color: 'var(--accent)' }
+  ];
+}
+function renderPresSlide() {
+  const slides = getPresSlides();
+  const slide = slides[presCurrentSlide];
+  $('presContent').innerHTML = `<div class="mega-label">${slide.label}</div><div class="mega-value" style="color:${slide.color}">${slide.value}</div><div class="mega-sub">${slide.sub}</div>`;
+
+  // Dots
+  const dots = $('presDots');
+  dots.innerHTML = '';
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'pres-dot' + (i === presCurrentSlide ? ' active' : '');
+    dot.onclick = () => { presCurrentSlide = i; renderPresSlide(); };
+    dots.appendChild(dot);
+  });
+}
+
+// V11: Scenario comparison
+function saveScenario(slot) {
+  savedScenarios[slot] = { state: JSON.parse(JSON.stringify(state)), result: model(), btcPrice: getBtcPrice() };
+  const el = $('scenSlot' + (slot + 1));
+  el.classList.add('filled');
+  el.textContent = `${state.minerCount} × ${state.hashratePerMiner} TH/s`;
+  el.title = `Saved: ${state.minerCount} miners, $${state.powerCost}/kWh, ${state.holdMonths}mo`;
+}
+function compareScenarios() {
+  const filled = savedScenarios.filter(s => s !== null);
+  if (filled.length < 2) {
+    $('scenarioCompareContent').innerHTML = '<p class="note">Save at least 2 scenarios to compare.</p>';
+    $('scenarioModal').classList.add('active');
+    return;
+  }
+  const filledCount = filled.length;
+  const thStyle = 'padding:8px 10px;border-bottom:2px solid var(--accent);text-align:center;font-weight:700';
+  let html = '<div style="max-height:70vh;overflow-y:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:2px solid var(--accent);width:140px">Metric</th>';
+  savedScenarios.forEach((s, i) => { if (s) html += `<th style="${thStyle}">Scenario ${i + 1}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  // Section header helper
+  const sectionRow = (label) => `<tr><td colspan="${filledCount + 1}" style="padding:12px 8px 4px;font-weight:700;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:none">${label}</td></tr>`;
+  const dataRow = (label, fn, highlight) => {
+    let row = `<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(47,69,93,.3);color:var(--muted);font-size:11px">${label}</td>`;
+    let vals = [];
+    savedScenarios.forEach(s => { if (s) vals.push(fn(s)); });
+    const best = highlight ? Math.max(...vals.map(v => parseFloat(String(v).replace(/[^0-9.-]/g, '')) || 0)) : null;
+    savedScenarios.forEach(s => {
+      if (s) {
+        const v = fn(s);
+        const numV = parseFloat(String(v).replace(/[^0-9.-]/g, '')) || 0;
+        const isBest = highlight && numV === best && filledCount > 1;
+        row += `<td style="padding:5px 8px;border-bottom:1px solid rgba(47,69,93,.3);text-align:center;font-weight:600;font-size:12px;${isBest ? 'color:var(--success)' : ''}">${v}</td>`;
+      }
+    });
+    return row + '</tr>';
+  };
+
+  // Configuration section
+  html += sectionRow('Configuration');
+  html += dataRow('Hardware', s => `${s.state.minerCount} × ${s.state.hashratePerMiner} TH/s`);
+  html += dataRow('Unit Cost', s => '$' + fmtMoney(s.state.unitCapex));
+  html += dataRow('Total CapEx', s => '$' + fmtMoney(s.result.capex));
+  html += dataRow('Power Cost', s => '$' + s.state.powerCost.toFixed(3) + '/kWh');
+  html += dataRow('Difficulty Growth', s => s.state.difficultyGrowth + '%/yr');
+  html += dataRow('Horizon', s => s.state.holdMonths + ' months');
+  html += dataRow('Starting BTC Price', s => '$' + fmtMoney(s.btcPrice));
+  html += dataRow('Price Model', s => s.state.priceModel === 'custom' ? 'Custom Annual' : 'Cycle Model');
+  if (filled.some(s => s.state.priceModel === 'custom')) {
+    html += dataRow('Y1/Y2/Y3 Change', s => s.state.priceModel === 'custom' ? `${s.state.priceY1}% / ${s.state.priceY2}% / ${s.state.priceY3}%` : '—');
+  }
+
+  // Results section
+  html += sectionRow('Performance');
+  html += dataRow('MOIC', s => fmtNum(s.result.moicNoResale, 2) + 'x', true);
+  html += dataRow('IRR', s => s.result.irrANoResale !== null ? fmtPct(s.result.irrANoResale, 1) : 'N/A', true);
+  html += dataRow('Payback', s => (s.result.paybackMonth || '>60') + ' mo');
+  html += dataRow('NPV', s => '$' + fmtMoney(s.result.npv), true);
+  html += dataRow('Hash Price', s => '$' + s.result.hashPriceDay.toFixed(4) + '/TH/day', true);
+  html += dataRow('Breakeven Price', s => '$' + fmtMoney(s.result.breakevenPrice));
+
+  // Outcome section
+  html += sectionRow('Outcome');
+  html += dataRow('Ending BTC', s => fmtBtc(s.result.endingBtc, 4), true);
+  html += dataRow('Ending Value', s => '$' + fmtMoney(s.result.endingValue), true);
+  html += dataRow('Cost/BTC', s => '$' + fmtMoney(s.result.costPerBtc));
+  html += dataRow('Total Revenue', s => '$' + fmtMoney(s.result.cumRevenue));
+  html += dataRow('Total OpEx', s => '$' + fmtMoney(s.result.cumOpex));
+
+  html += '</tbody></table></div>';
+  $('scenarioCompareContent').innerHTML = html;
+  $('scenarioModal').classList.add('active');
+}
+
+// V11: One-Page Executive Summary
+function generateOnePage() {
+  const out = model();
+  const sym = symbolFor(state.currency);
+  const ts = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const moic = out.moicNoResale;
+  const irrStr = out.irrANoResale !== null ? (out.irrANoResale * 100).toFixed(1) + '%' : 'N/A';
+  const compareBtc = state.compareMode === 'dca' ? out.trueDcaBtc : out.cashMatchedBtc;
+  const adv = out.endingBtc - compareBtc;
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Pantheon Mining - Executive Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Montserrat,Inter,sans-serif;background:#fff;color:#1a1a2e;padding:40px;max-width:800px;margin:0 auto}
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #d6b389;padding-bottom:16px;margin-bottom:24px}
+.logo{display:flex;align-items:center;gap:10px}.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#d6b389,#c9a06e);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#01111d}
+h1{font-size:20px}h2{font-size:14px;color:#d6b389;text-transform:uppercase;letter-spacing:1px;margin:20px 0 12px;border-bottom:1px solid #eee;padding-bottom:6px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.kpi{text-align:center;padding:16px;border:1px solid #eee;border-radius:12px}
+.kpi .val{font-size:28px;font-weight:800;color:#d6b389}.kpi .lbl{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.metric{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.metric .k{color:#64748B}.metric .v{font-weight:600}
+.disclaimer{font-size:9px;color:#94a3b8;margin-top:24px;padding-top:12px;border-top:1px solid #eee;line-height:1.5}
+@media print{body{padding:20px}}
+</style></head><body>
+<div class="header"><div class="logo"><div class="logo-icon">P</div><div><h1>Pantheon Mining</h1><div style="font-size:11px;color:#64748B">Executive Summary — ${ts}</div></div></div>
+<div style="text-align:right;font-size:12px"><strong>${state.minerCount} miners</strong><br>${state.holdMonths} month horizon</div></div>
+<div class="kpi-grid"><div class="kpi"><div class="lbl">Return Multiple</div><div class="val">${fmtNum(moic,2)}x</div></div>
+<div class="kpi"><div class="lbl">IRR (Pre-Tax)</div><div class="val">${irrStr}</div></div>
+<div class="kpi"><div class="lbl">Payback</div><div class="val">${out.paybackMonth||'>60'} mo</div></div></div>
+<div class="kpi-grid"><div class="kpi"><div class="lbl">NPV (${state.discountRate}%)</div><div class="val" style="font-size:20px;color:${out.npv>=0?'#059669':'#dc2626'}">${sym}${fmtMoney(toDisplay(out.npv))}</div></div>
+<div class="kpi"><div class="lbl">Breakeven Price</div><div class="val" style="font-size:20px">${sym}${fmtMoney(toDisplay(out.breakevenPrice))}</div></div>
+<div class="kpi"><div class="lbl">Hash Price</div><div class="val" style="font-size:20px">$${out.hashPriceDay.toFixed(4)}</div></div></div>
+<h2>Investment Overview</h2>
+<div class="row"><div><div class="metric"><span class="k">Total CapEx</span><span class="v">${sym}${fmtMoney(toDisplay(out.capex))}</span></div>
+<div class="metric"><span class="k">Total OpEx (${state.holdMonths}mo)</span><span class="v">${sym}${fmtMoney(toDisplay(out.cumOpex))}</span></div>
+<div class="metric"><span class="k">Cost per BTC</span><span class="v">${sym}${fmtMoney(toDisplay(out.costPerBtc))}</span></div></div>
+<div><div class="metric"><span class="k">Ending BTC</span><span class="v">${fmtBtc(out.endingBtc,4)}</span></div>
+<div class="metric"><span class="k">Ending Value</span><span class="v">${sym}${fmtMoney(toDisplay(out.endingValue))}</span></div>
+<div class="metric"><span class="k">Mining Advantage</span><span class="v" style="color:${adv>=0?'#059669':'#dc2626'}">${adv>=0?'+':''}${fmtBtc(adv,4)} BTC</span></div></div></div>
+<h2>Key Assumptions</h2>
+<div class="row"><div><div class="metric"><span class="k">Hardware</span><span class="v">${state.minerCount} × ${state.hashratePerMiner} TH/s</span></div>
+<div class="metric"><span class="k">Power Cost</span><span class="v">$${state.powerCost}/kWh</span></div>
+<div class="metric"><span class="k">Difficulty Growth</span><span class="v">${state.difficultyGrowth}%/yr</span></div></div>
+<div><div class="metric"><span class="k">Network Hashrate</span><span class="v">${state.networkHashrateEH} EH/s</span></div>
+<div class="metric"><span class="k">Starting BTC Price</span><span class="v">${sym}${fmtMoney(toDisplay(getBtcPrice()))}</span></div>
+<div class="metric"><span class="k">Price Model</span><span class="v">${state.priceModel==='custom'?'Custom Annual':'Cycle Model'}</span></div></div></div>
+<div class="disclaimer">This document is for illustrative purposes only and does not constitute investment advice. All projections are based on user-defined assumptions. Bitcoin mining involves significant risks. Past performance does not guarantee future returns. Investors should conduct their own due diligence. © ${new Date().getFullYear()} Pantheon Mining</div>
+</body></html>`;
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// V11: PDF Export (uses browser print with print-optimized one-pager)
+function exportPdf() {
+  generateOnePage();
+  setTimeout(() => {
+    // The opened window can be printed as PDF
+    alert('Use your browser\'s Print function (Ctrl+P / Cmd+P) in the opened window and select "Save as PDF" as the destination.');
+  }, 500);
+}
+
+// V11: Footer timestamp
+function updateFooterTimestamp() {
+  const el = $('footerTimestamp');
+  if (el) el.textContent = 'Last updated: ' + new Date().toLocaleString();
+}
+
+// Bind all events
+function bindEvents() {
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      $(btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'sensitivity') renderSensitivity();
+      if (btn.dataset.tab === 'montecarlo') runMonteCarlo();
+    });
+  });
+
+  // Compare mode toggle (DCA vs Cash-Matched)
+  document.querySelectorAll('.compare-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.compare-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.compareMode = btn.dataset.mode;
+      updateAll();
+    });
+  });
+
+  // Price model
+  document.querySelectorAll('.price-model-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.price-model-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.priceModel = btn.dataset.mode;
+      $('customPriceControls').style.display = state.priceModel === 'custom' ? 'block' : 'none';
+      $('cycleModelNote').style.display = state.priceModel === 'cycle' ? 'block' : 'none';
+      modelCache.key = null;
+      updateAll();
+    });
+  });
+
+  // Price presets
+  document.querySelectorAll('.price-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.price-preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const preset = PRESETS[btn.dataset.preset];
+      if (preset) {
+        state.priceY1 = preset.y1; state.priceY2 = preset.y2; state.priceY3 = preset.y3; state.priceY4 = preset.y4; state.priceY5 = preset.y5;
+        $('priceY1').value = preset.y1; $('priceY2').value = preset.y2; $('priceY3').value = preset.y3; $('priceY4').value = preset.y4; $('priceY5').value = preset.y5;
+      }
+      state.pricePreset = btn.dataset.preset;
+      modelCache.key = null;
+      updateAll();
+    });
+  });
+
+  // Year inputs
+  ['priceY1', 'priceY2', 'priceY3', 'priceY4', 'priceY5'].forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', () => { state[id] = clamp(+el.value || 0, -90, 500); modelCache.key = null; updateAll(); });
+  });
+
+  // Miner counter
+  $('minerMinus').addEventListener('click', () => { state.minerCount = Math.max(1, state.minerCount - 10); $('minerCount').value = state.minerCount; modelCache.key = null; updateAll(); });
+  $('minerPlus').addEventListener('click', () => { state.minerCount += 10; $('minerCount').value = state.minerCount; modelCache.key = null; updateAll(); });
+
+  // Advanced toggle
+  $('toggleAdvanced').addEventListener('click', () => {
+    const p = $('advancedAssumptions');
+    p.classList.toggle('collapsed');
+    $('toggleAdvanced').textContent = p.classList.contains('collapsed') ? '+' : '−';
+  });
+
+  // Cashflow toggle
+  $('toggleCashflowView').addEventListener('click', () => {
+    state.cashflowView = state.cashflowView === 'monthly' ? 'annual' : 'monthly';
+    $('toggleCashflowView').textContent = state.cashflowView === 'monthly' ? 'Switch to Annual' : 'Switch to Monthly';
+    updateCashflow(model(), symbolFor(state.currency));
+  });
+
+  // Reset
+  $('resetBtn').addEventListener('click', () => { state = JSON.parse(JSON.stringify(DEFAULTS)); applyStateToUI(); modelCache.key = null; updateAll(); });
+
+  // Fetch network hashrate
+  $('fetchHashrateBtn').addEventListener('click', fetchNetworkHashrate);
+
+  // Fetch FX rate
+  $('refreshFx').addEventListener('click', fetchFxRate);
+
+  // MC rerun
+  $('rerunMC').addEventListener('click', () => runMonteCarlo());
+
+  // Share
+  $('shareBtn').addEventListener('click', async () => {
+    const params = new URLSearchParams();
+    Object.entries(state).forEach(([k, v]) => params.set(k, v));
+    const url = `${location.origin}${location.pathname}?${params}`;
+    try { await navigator.clipboard.writeText(url); $('shareBtn').textContent = 'Copied!'; setTimeout(() => $('shareBtn').textContent = 'Share', 1500); } catch { prompt('Copy:', url); }
+  });
+
+  // Excel export with SheetJS
+  $('exportBtn').addEventListener('click', () => {
+    const out = model();
+    const sym = symbolFor(state.currency);
+    const wb = XLSX.utils.book_new();
+
+    // Helpers
+    const fmtC = v => Math.round(toDisplay(v || 0)).toLocaleString();
+    const fmtB = v => (v || 0).toFixed(6);
+    const r2 = v => Math.round((v || 0) * 100) / 100;
+
+    // Comparison data
+    const isDca = state.compareMode === 'dca';
+    const compareBtc = isDca ? out.trueDcaBtc : out.cashMatchedBtc;
+    const compareLabel = isDca ? 'True DCA' : 'Cash-Matched Buy';
+    const miningAdv = out.endingBtc - compareBtc;
+    const advPct = compareBtc > 0 ? (miningAdv / compareBtc) * 100 : 0;
+    const moic = out.moicNoResale;
+    const grade = moic >= 1.5 && out.paybackMonth && out.paybackMonth <= 36 ? 'Excellent' : moic >= 1.2 ? 'Good' : moic >= 1.0 ? 'Fair' : 'Review Needed';
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 1: DASHBOARD
+    // ═══════════════════════════════════════════════════════════════
+    const dashData = [
+      ['PANTHEON MINING'],
+      ['Investment Analysis Dashboard'],
+      ['Generated: ' + new Date().toLocaleString()],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['KEY INVESTMENT METRICS'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Investment Grade', grade],
+      [],
+      ['Metric', 'Value', 'Unit'],
+      ['Total Initial Investment', fmtC(out.capex), sym],
+      ['Total Investment (5-Year)', fmtC(out.capex + out.cumOpex), sym],
+      ['Return Multiple (MOIC)', r2(moic), 'x'],
+      ['Internal Rate of Return', out.irrANoResale !== null ? r2(out.irrANoResale * 100) : 'N/A', '%'],
+      ['Payback Period', out.paybackMonth || '>60', 'months'],
+      ['Cost per BTC', fmtC(out.costPerBtc), sym],
+      ['Ending BTC Holdings', fmtB(out.endingBtc), 'BTC'],
+      ['Ending Portfolio Value', fmtC(out.endingValue), sym],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['MINING vs ' + compareLabel.toUpperCase()],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Strategy', 'BTC Acquired', 'Value at Exit'],
+      ['Mining', fmtB(out.endingBtc), fmtC(out.endingValue)],
+      [compareLabel, fmtB(compareBtc), fmtC(compareBtc * out.endingPrice)],
+      [],
+      ['Mining Advantage', fmtB(miningAdv), 'BTC'],
+      ['Advantage %', r2(advPct), '%'],
+      ['Winner', miningAdv >= 0 ? 'MINING' : compareLabel.toUpperCase()],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['5-YEAR BTC ACCUMULATION'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Year', 'BTC Mined', 'Cumulative BTC', 'BTC Price', 'Portfolio Value'],
+    ];
+    let cumBtcDash = 0;
+    for (let yr = 1; yr <= 5; yr++) {
+      const yd = out.yearlyData && out.yearlyData[yr - 1];
+      if (yd) {
+        cumBtcDash += yd.netBtc;
+        dashData.push(['Year ' + yr, fmtB(yd.netBtc), fmtB(cumBtcDash), fmtC(yd.endPrice), fmtC(cumBtcDash * yd.endPrice)]);
+      }
+    }
+    const wsDash = XLSX.utils.aoa_to_sheet(dashData);
+    wsDash['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 16 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, wsDash, 'Dashboard');
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 2: P&L (PROFIT & LOSS)
+    // ═══════════════════════════════════════════════════════════════
+    const plData = [
+      ['PANTHEON MINING'],
+      ['Profit & Loss Statement'],
+      [],
+      ['', '', 'Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'TOTAL'],
+      [],
+      ['REVENUE'],
+      ['BTC Mined Value', sym],
+      [],
+      ['COST OF GOODS SOLD'],
+      ['Power/Electricity', sym],
+      [],
+      ['GROSS MARGIN', sym],
+      ['Gross Margin %', '%'],
+      [],
+      ['OPERATING EXPENSES'],
+      ['Pool Fees (BTC value)', sym],
+      ['Hosting Fees', sym],
+      ['Management Fees', sym],
+      ['Insurance', sym],
+      ['Repairs & Maintenance', sym],
+      ['Total OPEX', sym],
+      [],
+      ['EBITDA', sym],
+      ['EBITDA Margin %', '%'],
+      [],
+      ['DEPRECIATION'],
+      ['Hardware Depreciation', sym],
+      [],
+      ['NET RESULT', sym],
+      ['Net Margin %', '%'],
+    ];
+
+    // Calculate yearly P&L
+    let totRev = 0, totPower = 0, totPool = 0, totHost = 0, totMgmt = 0, totIns = 0, totRep = 0;
+    const yPL = [];
+    for (let y = 0; y < 5; y++) {
+      const slice = out.rows.slice(y * 12, (y + 1) * 12);
+      if (!slice.length) { yPL.push(null); continue; }
+      const rev = slice.reduce((a, r) => a + (r.revenue || 0), 0);
+      const pwr = slice.reduce((a, r) => a + (r.powerCost || 0), 0);
+      const poolBtc = slice.reduce((a, r) => a + (r.poolFeeBtc || 0), 0);
+      const avgP = slice.reduce((a, r) => a + (r.price || 0), 0) / slice.length;
+      const pool = poolBtc * avgP;
+      const host = slice.reduce((a, r) => a + (r.hostingCost || 0), 0);
+      const mgmt = slice.reduce((a, r) => a + (r.mgmtCost || 0), 0);
+      const ins = slice.reduce((a, r) => a + (r.insuranceCost || 0), 0);
+      const rep = slice.reduce((a, r) => a + (r.repairCost || 0), 0);
+      yPL.push({ rev, pwr, pool, host, mgmt, ins, rep });
+      totRev += rev; totPower += pwr; totPool += pool; totHost += host; totMgmt += mgmt; totIns += ins; totRep += rep;
+    }
+
+    const gmY = yPL.map(y => y ? y.rev - y.pwr : 0);
+    const totGM = totRev - totPower;
+    const opexY = yPL.map(y => y ? y.pool + y.host + y.mgmt + y.ins + y.rep : 0);
+    const totOpexPL = totPool + totHost + totMgmt + totIns + totRep;
+    const ebitdaY = gmY.map((g, i) => g - opexY[i]);
+    const totEbitda = totGM - totOpexPL;
+    const depY = out.capex / 5;
+    const netY = ebitdaY.map(e => e - depY);
+    const totNet = totEbitda - out.capex;
+
+    plData[6] = ['BTC Mined Value', sym, ...yPL.map(y => y ? fmtC(y.rev) : ''), fmtC(totRev)];
+    plData[9] = ['Power/Electricity', sym, ...yPL.map(y => y ? fmtC(y.pwr) : ''), fmtC(totPower)];
+    plData[11] = ['GROSS MARGIN', sym, ...gmY.map(g => fmtC(g)), fmtC(totGM)];
+    plData[12] = ['Gross Margin %', '%', ...gmY.map((g, i) => yPL[i] && yPL[i].rev ? r2(g / yPL[i].rev * 100) : ''), totRev ? r2(totGM / totRev * 100) : ''];
+    plData[15] = ['Pool Fees (BTC value)', sym, ...yPL.map(y => y ? fmtC(y.pool) : ''), fmtC(totPool)];
+    plData[16] = ['Hosting Fees', sym, ...yPL.map(y => y ? fmtC(y.host) : ''), fmtC(totHost)];
+    plData[17] = ['Management Fees', sym, ...yPL.map(y => y ? fmtC(y.mgmt) : ''), fmtC(totMgmt)];
+    plData[18] = ['Insurance', sym, ...yPL.map(y => y ? fmtC(y.ins) : ''), fmtC(totIns)];
+    plData[19] = ['Repairs & Maintenance', sym, ...yPL.map(y => y ? fmtC(y.rep) : ''), fmtC(totRep)];
+    plData[20] = ['Total OPEX', sym, ...opexY.map(o => fmtC(o)), fmtC(totOpexPL)];
+    plData[22] = ['EBITDA', sym, ...ebitdaY.map(e => fmtC(e)), fmtC(totEbitda)];
+    plData[23] = ['EBITDA Margin %', '%', ...ebitdaY.map((e, i) => yPL[i] && yPL[i].rev ? r2(e / yPL[i].rev * 100) : ''), totRev ? r2(totEbitda / totRev * 100) : ''];
+    plData[26] = ['Hardware Depreciation', sym, ...Array(5).fill(fmtC(depY)), fmtC(out.capex)];
+    plData[28] = ['NET RESULT', sym, ...netY.map(n => fmtC(n)), fmtC(totNet)];
+    plData[29] = ['Net Margin %', '%', ...netY.map((n, i) => yPL[i] && yPL[i].rev ? r2(n / yPL[i].rev * 100) : ''), totRev ? r2(totNet / totRev * 100) : ''];
+
+    const wsPL = XLSX.utils.aoa_to_sheet(plData);
+    wsPL['!cols'] = [{ wch: 24 }, { wch: 6 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }];
+    XLSX.utils.book_append_sheet(wb, wsPL, 'P&L');
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 3: CASH FLOW
+    // ═══════════════════════════════════════════════════════════════
+    const cfData = [
+      ['PANTHEON MINING'],
+      ['Cash Flow Statement'],
+      [],
+      ['', '', 'Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'TOTAL'],
+      [],
+      ['OPERATING CASH FLOW'],
+      ['EBITDA', sym],
+      ['Capital Expenditure', sym],
+      ['Operating CF', sym],
+      [],
+      ['CUMULATIVE POSITION'],
+      ['Cumulative Cash Flow', sym],
+      [],
+      ['BTC HOLDINGS'],
+      ['BTC Mined (Year)', 'BTC'],
+      ['Cumulative BTC', 'BTC'],
+      ['BTC Value', sym],
+      [],
+      ['TOTAL VALUE'],
+      ['Cash + BTC Value', sym],
+    ];
+
+    let cumCF = -out.capex;
+    let cumBtcCF = 0;
+    const cfYears = [];
+    for (let y = 0; y < 5; y++) {
+      const yd = out.yearlyData && out.yearlyData[y];
+      if (!yd) { cfYears.push(null); continue; }
+      const ebit = yd.revenue - yd.totalOpex;
+      const cap = y === 0 ? out.capex : 0;
+      const opCF = ebit - cap;
+      cumCF += y === 0 ? ebit : opCF;
+      cumBtcCF += yd.netBtc;
+      cfYears.push({ ebit, cap, opCF, cumCF, btc: yd.netBtc, cumBtc: cumBtcCF, btcVal: cumBtcCF * yd.endPrice });
+    }
+
+    cfData[6] = ['EBITDA', sym, ...cfYears.map(c => c ? fmtC(c.ebit) : ''), fmtC(cfYears.reduce((a, c) => a + (c ? c.ebit : 0), 0))];
+    cfData[7] = ['Capital Expenditure', sym, fmtC(-out.capex), '', '', '', '', fmtC(-out.capex)];
+    cfData[8] = ['Operating CF', sym, ...cfYears.map((c, i) => c ? fmtC(i === 0 ? c.ebit - out.capex : c.ebit) : ''), fmtC(cfYears.reduce((a, c) => a + (c ? c.ebit : 0), 0) - out.capex)];
+    cfData[11] = ['Cumulative Cash Flow', sym, ...cfYears.map(c => c ? fmtC(c.cumCF) : ''), ''];
+    cfData[14] = ['BTC Mined (Year)', 'BTC', ...cfYears.map(c => c ? fmtB(c.btc) : ''), fmtB(out.endingBtc)];
+    cfData[15] = ['Cumulative BTC', 'BTC', ...cfYears.map(c => c ? fmtB(c.cumBtc) : ''), ''];
+    cfData[16] = ['BTC Value', sym, ...cfYears.map(c => c ? fmtC(c.btcVal) : ''), fmtC(out.endingValue)];
+    cfData[19] = ['Cash + BTC Value', sym, ...cfYears.map(c => c ? fmtC(c.cumCF + c.btcVal) : ''), cfYears[4] ? fmtC(cfYears[4].cumCF + out.endingValue) : ''];
+
+    const wsCF = XLSX.utils.aoa_to_sheet(cfData);
+    wsCF['!cols'] = [{ wch: 24 }, { wch: 6 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }];
+    XLSX.utils.book_append_sheet(wb, wsCF, 'Cash Flow');
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 4: MONTHLY DETAIL
+    // ═══════════════════════════════════════════════════════════════
+    const monthlyHeaders = ['Month', 'Date', 'BTC Price', 'Gross BTC', 'Pool Fee', 'Net BTC', 'Cumul. BTC', 'Revenue', 'Power', 'Total OPEX', 'Net Cash', 'Cumul. Value'];
+    const monthlyData = [
+      ['PANTHEON MINING'],
+      ['Monthly Cash Flow Detail'],
+      [],
+      monthlyHeaders
+    ];
+    const startDate = new Date();
+    out.rows.forEach((r, i) => {
+      const d = new Date(startDate);
+      d.setMonth(d.getMonth() + i);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      monthlyData.push([
+        r.month, dateStr, fmtC(r.price), fmtB(r.grossBtc), fmtB(r.poolFeeBtc), fmtB(r.netBtc), fmtB(r.btcHeld),
+        fmtC(r.revenue), fmtC(r.powerCost), fmtC(r.totalOpex), fmtC(r.netCash), fmtC(r.cumNetValue)
+      ]);
+    });
+    const wsMonthly = XLSX.utils.aoa_to_sheet(monthlyData);
+    wsMonthly['!cols'] = [{ wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 16 }];
+    wsMonthly['!autofilter'] = { ref: 'A4:L4' };
+    XLSX.utils.book_append_sheet(wb, wsMonthly, 'Monthly Detail');
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 5: ASSUMPTIONS
+    // ═══════════════════════════════════════════════════════════════
+    const priceModelDesc = state.priceModel === 'custom' ? 'Custom Annual' : `Cycle Model (${state.priceDrift}% drift, ±${state.priceCycleAmp}% amp)`;
+    const assumptionsData = [
+      ['PANTHEON MINING'],
+      ['Model Assumptions'],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['HARDWARE CONFIGURATION'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Parameter', 'Value', 'Unit'],
+      ['Miner Model', state.minerModel.toUpperCase(), ''],
+      ['Number of Miners', state.minerCount, 'units'],
+      ['Hashrate per Miner', state.hashratePerMiner, 'TH/s'],
+      ['Power per Miner', state.powerPerMiner, 'kW'],
+      ['Unit Cost', fmtC(state.unitCapex), sym],
+      ['Total Fleet Hashrate', out.fleetHashTH, 'TH/s'],
+      ['Total Fleet Power', r2(out.fleetPowerKW), 'kW'],
+      ['Total Capex', fmtC(out.capex), sym],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['NETWORK ASSUMPTIONS'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Parameter', 'Value', 'Unit'],
+      ['Network Hashrate', state.networkHashrateEH, 'EH/s'],
+      ['Network Difficulty Growth', state.difficultyGrowth, '%/year'],
+      ['ASIC Degradation', state.degradation, '%/year'],
+      ['Uptime', state.uptime, '%'],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['OPERATING COSTS'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Parameter', 'Value', 'Unit'],
+      ['Power Cost', state.powerCost, '$/kWh'],
+      ['Pool Fee', state.poolFee, '%'],
+      ['Hosting Fee', state.hostingFee, '%'],
+      ['Management Fee', state.managementFee, '%'],
+      ['Insurance', state.insuranceFee, '%'],
+      ['Repair Reserve', state.repairReserve, '%/year'],
+      ['Total Fee Load', r2(state.poolFee + state.hostingFee + state.managementFee + state.insuranceFee), '%'],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['PRICE MODEL'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Parameter', 'Value', 'Unit'],
+      ['Model Type', priceModelDesc, ''],
+      ['Starting BTC Price', fmtC(getBtcPrice()), sym],
+    ];
+    if (state.priceModel === 'custom') {
+      // Get year-end prices from model output (month 12, 24, 36, 48, 60)
+      assumptionsData.push(['Year 1 Change', state.priceY1, '%'], ['Year 1 End Price', fmtC(out.prices[12] || 0), sym]);
+      assumptionsData.push(['Year 2 Change', state.priceY2, '%'], ['Year 2 End Price', fmtC(out.prices[24] || 0), sym]);
+      assumptionsData.push(['Year 3 Change', state.priceY3, '%'], ['Year 3 End Price', fmtC(out.prices[36] || 0), sym]);
+      assumptionsData.push(['Year 4 Change', state.priceY4, '%'], ['Year 4 End Price', fmtC(out.prices[48] || 0), sym]);
+      assumptionsData.push(['Year 5 Change', state.priceY5, '%'], ['Year 5 End Price', fmtC(out.prices[60] || 0), sym]);
+    }
+    assumptionsData.push([], ['════════════════════════════════════════════════════════════'], ['INVESTMENT PARAMETERS'], ['════════════════════════════════════════════════════════════'], []);
+    assumptionsData.push(['Parameter', 'Value', 'Unit']);
+    assumptionsData.push(['Hold Period', state.holdMonths, 'months']);
+    assumptionsData.push(['Resale Value', state.resaleValue, '% of capex']);
+    assumptionsData.push(['Display Currency', state.currency, '']);
+    if (state.currency === 'EUR') assumptionsData.push(['USD/EUR Rate', state.fxRate, '']);
+
+    const wsAssumptions = XLSX.utils.aoa_to_sheet(assumptionsData);
+    wsAssumptions['!cols'] = [{ wch: 24 }, { wch: 20 }, { wch: 16 }];
+    XLSX.utils.book_append_sheet(wb, wsAssumptions, 'Assumptions');
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 6: COMPARISON
+    // ═══════════════════════════════════════════════════════════════
+    const compData = [
+      ['PANTHEON MINING'],
+      ['Mining vs Buying Comparison'],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['COMPARISON METHOD: ' + compareLabel.toUpperCase()],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['TOTAL CAPITAL DEPLOYED'],
+      ['Capex (Hardware)', fmtC(out.capex), sym],
+      ['Operating Expenses (5yr)', fmtC(out.cumOpex), sym],
+      ['Total Investment', fmtC(out.capex + out.cumOpex), sym],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['MINING OUTCOME'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Total BTC Mined', fmtB(out.endingBtc), 'BTC'],
+      ['Cost per BTC', fmtC(out.costPerBtc), sym],
+      ['Ending BTC Value', fmtC(out.endingValue), sym],
+      ['MOIC (BTC Value / Capex)', r2(moic), 'x'],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      [compareLabel.toUpperCase() + ' OUTCOME'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Total BTC Purchased', fmtB(compareBtc), 'BTC'],
+      ['Avg Cost per BTC', compareBtc > 0 ? fmtC((out.capex + out.cumOpex) / compareBtc) : 'N/A', sym],
+      ['Ending BTC Value', fmtC(compareBtc * out.endingPrice), sym],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['ADVANTAGE ANALYSIS'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['Mining Advantage (BTC)', fmtB(miningAdv), 'BTC'],
+      ['Mining Advantage (%)', r2(advPct), '%'],
+      ['Value Difference', fmtC(miningAdv * out.endingPrice), sym],
+      [],
+      ['WINNER', miningAdv >= 0 ? 'MINING' : compareLabel.toUpperCase(), ''],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['METHODOLOGY'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      [isDca ? 'True DCA: Total investment spread evenly across all months' : 'Cash-Matched Buy: Capex at start, OPEX at each months price'],
+    ];
+    const wsComp = XLSX.utils.aoa_to_sheet(compData);
+    wsComp['!cols'] = [{ wch: 50 }, { wch: 18 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, wsComp, 'Comparison');
+
+    // ═══════════════════════════════════════════════════════════════
+    // SHEET 7: SENSITIVITY
+    // ═══════════════════════════════════════════════════════════════
+    const sensData = [
+      ['PANTHEON MINING'],
+      ['Sensitivity Analysis'],
+      [],
+      ['════════════════════════════════════════════════════════════'],
+      ['BTC PRICE SENSITIVITY'],
+      ['════════════════════════════════════════════════════════════'],
+      [],
+      ['BTC Price', 'MOIC', 'Portfolio Value'],
+    ];
+    [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].forEach(mult => {
+      const p = out.endingPrice * mult;
+      const v = out.endingBtc * p;
+      const m = out.capex > 0 ? v / out.capex : 0;
+      sensData.push([fmtC(p), r2(m), fmtC(v)]);
+    });
+    sensData.push([], ['════════════════════════════════════════════════════════════'], ['POWER COST SENSITIVITY'], ['════════════════════════════════════════════════════════════'], [], ['Power Cost ($/kWh)', 'Cash-Adj MOIC', 'Net Cash Position']);
+    [0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.10].forEach(pwr => {
+      const monthlyPwr = state.minerCount * state.powerPerMiner * 24 * 30 * pwr;
+      const totalPwr = monthlyPwr * state.holdMonths;
+      const basePwr = state.minerCount * state.powerPerMiner * 24 * 30 * state.powerCost * state.holdMonths;
+      const adjOpex = out.cumOpex - basePwr + totalPwr;
+      const netCash = out.cumRevenue - adjOpex;
+      const totalVal = out.endingValue + netCash;
+      const adjMoic = out.capex > 0 ? totalVal / out.capex : 0;
+      sensData.push(['$' + pwr.toFixed(3), r2(adjMoic), fmtC(netCash)]);
+    });
+    const wsSens = XLSX.utils.aoa_to_sheet(sensData);
+    wsSens['!cols'] = [{ wch: 20 }, { wch: 16 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, wsSens, 'Sensitivity');
+
+    // Generate and download
+    const filename = `Pantheon_Mining_Analysis_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  });
+
+  // HTML Report export
+  $('exportHtmlBtn').addEventListener('click', () => {
+    const html = buildReportHtml();
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+  });
+
+  // Price refresh
+  $('refreshPrice').addEventListener('click', fetchBtcPrice);
+
+  // Miner model
+  $('minerModel').addEventListener('change', () => {
+    const opt = $('minerModel').selectedOptions[0];
+    state.minerModel = $('minerModel').value;
+    state.hashratePerMiner = +opt.dataset.hash;
+    state.powerPerMiner = +opt.dataset.power;
+    state.unitCapex = +opt.dataset.capex;
+    $('hashratePerMiner').value = state.hashratePerMiner;
+    $('hashratePerMinerRange').value = state.hashratePerMiner;
+    $('powerPerMiner').value = state.powerPerMiner;
+    $('powerPerMinerRange').value = state.powerPerMiner;
+    $('unitCapex').value = state.unitCapex;
+    $('unitCapexRange').value = state.unitCapex;
+    modelCache.key = null;
+    updateAll();
+  });
+
+  // Currency
+  $('currency').addEventListener('change', () => { state.currency = $('currency').value; updateAll(); });
+
+  // Reinvest
+  $('reinvestBtc').addEventListener('change', () => { state.reinvestBtc = $('reinvestBtc').checked; modelCache.key = null; updateAll(); });
+
+  // All sliders and numeric inputs
+  const fields = ['minerCount', 'holdMonths', 'fxRate', 'btcOverride', 'priceDrift', 'priceCycleAmp', 'priceCycleMonths', 'unitCapex', 'powerCost', 'hashratePerMiner', 'powerPerMiner', 'networkHashrateEH', 'uptime', 'poolFee', 'hostingFee', 'managementFee', 'insuranceFee', 'repairReserve', 'degradation', 'difficultyGrowth', 'resaleValue'];
+  const debouncedUpdate = debounce(() => { modelCache.key = null; updateAll(); }, 100);
+
+  fields.forEach(f => {
+    const el = $(f);
+    const range = $(f + 'Range');
+    if (el) {
+      el.addEventListener('input', () => {
+        state[f] = el.type === 'checkbox' ? el.checked : +el.value;
+        if (range) range.value = el.value;
+        debouncedUpdate();
+      });
+    }
+    if (range) {
+      range.addEventListener('input', () => {
+        state[f] = +range.value;
+        if (el) el.value = range.value;
+        debouncedUpdate();
+      });
+    }
+  });
+
+  // Hold months sync
+  $('holdMonthsRange').addEventListener('input', () => { state.holdMonths = +$('holdMonthsRange').value; $('holdMonths').value = state.holdMonths; debouncedUpdate(); });
+  $('holdMonths').addEventListener('input', () => { state.holdMonths = +$('holdMonths').value; $('holdMonthsRange').value = state.holdMonths; debouncedUpdate(); });
+
+  // Halving anchor
+  $('halvingAnchor').addEventListener('change', () => { state.halvingAnchor = $('halvingAnchor').value; modelCache.key = null; updateAll(); });
+
+  // V11: Walkthrough
+  $('walkthroughBtn').addEventListener('click', startWalkthrough);
+
+  // V11: Presentation mode
+  $('presentationBtn').addEventListener('click', startPresentation);
+
+  // V11: One-page summary
+  $('onepageSummaryBtn').addEventListener('click', generateOnePage);
+
+  // V11: New slider/input fields
+  const v11Fields = ['powerEscalation', 'discountRate', 'taxRate', 'depreciationYears'];
+  v11Fields.forEach(f => {
+    const el = $(f);
+    const range = $(f + 'Range');
+    if (el) {
+      el.addEventListener('input', () => {
+        state[f] = +el.value;
+        if (range) range.value = el.value;
+        modelCache.key = null;
+        updateAll();
+      });
+    }
+    if (range) {
+      range.addEventListener('input', () => {
+        state[f] = +range.value;
+        if (el) el.value = range.value;
+        modelCache.key = null;
+        updateAll();
+      });
+    }
+  });
+
+  // V11: Tax enabled checkbox
+  $('taxEnabled').addEventListener('change', () => { state.taxEnabled = $('taxEnabled').checked; modelCache.key = null; updateAll(); });
+
+  // V11: Tax jurisdiction
+  $('taxJurisdiction').addEventListener('change', () => {
+    state.taxJurisdiction = $('taxJurisdiction').value;
+    const rate = TAX_RATES[state.taxJurisdiction] || 0;
+    state.taxRate = rate;
+    $('taxRate').value = rate;
+    $('taxRateRange').value = rate;
+    modelCache.key = null;
+    updateAll();
+  });
+
+}
+
+function applyStateToUI() {
+  $('minerModel').value = state.minerModel;
+  $('currency').value = state.currency;
+  $('fxRate').value = state.fxRate;
+  $('minerCount').value = state.minerCount;
+  $('holdMonths').value = state.holdMonths;
+  $('holdMonthsRange').value = state.holdMonths;
+  $('btcOverride').value = state.btcOverride || '';
+  $('priceDrift').value = state.priceDrift;
+  $('priceDriftRange').value = state.priceDrift;
+  $('priceCycleAmp').value = state.priceCycleAmp;
+  $('priceCycleAmpRange').value = state.priceCycleAmp;
+  $('priceCycleMonths').value = state.priceCycleMonths;
+  $('priceCycleMonthsRange').value = state.priceCycleMonths;
+  $('halvingAnchor').value = state.halvingAnchor;
+  $('unitCapex').value = state.unitCapex;
+  $('unitCapexRange').value = state.unitCapex;
+  $('powerCost').value = state.powerCost;
+  $('powerCostRange').value = state.powerCost;
+  $('hashratePerMiner').value = state.hashratePerMiner;
+  $('hashratePerMinerRange').value = state.hashratePerMiner;
+  $('powerPerMiner').value = state.powerPerMiner;
+  $('powerPerMinerRange').value = state.powerPerMiner;
+  $('networkHashrateEH').value = state.networkHashrateEH;
+  $('networkHashrateEHRange').value = state.networkHashrateEH;
+  $('uptime').value = state.uptime;
+  $('uptimeRange').value = state.uptime;
+  $('poolFee').value = state.poolFee;
+  $('poolFeeRange').value = state.poolFee;
+  $('hostingFee').value = state.hostingFee;
+  $('hostingFeeRange').value = state.hostingFee;
+  $('managementFee').value = state.managementFee;
+  $('managementFeeRange').value = state.managementFee;
+  $('insuranceFee').value = state.insuranceFee;
+  $('insuranceFeeRange').value = state.insuranceFee;
+  $('repairReserve').value = state.repairReserve;
+  $('repairReserveRange').value = state.repairReserve;
+  $('degradation').value = state.degradation;
+  $('degradationRange').value = state.degradation;
+  $('difficultyGrowth').value = state.difficultyGrowth;
+  $('difficultyGrowthRange').value = state.difficultyGrowth;
+  $('resaleValue').value = state.resaleValue;
+  $('resaleRange').value = state.resaleValue;
+  $('reinvestBtc').checked = state.reinvestBtc;
+  $('priceY1').value = state.priceY1;
+  $('priceY2').value = state.priceY2;
+  $('priceY3').value = state.priceY3;
+  $('priceY4').value = state.priceY4;
+  $('priceY5').value = state.priceY5;
+
+  document.querySelectorAll('.price-model-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === state.priceModel));
+  document.querySelectorAll('.price-preset-btn').forEach(b => b.classList.toggle('active', b.dataset.preset === state.pricePreset));
+  document.querySelectorAll('.compare-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === state.compareMode));
+
+  $('customPriceControls').style.display = state.priceModel === 'custom' ? 'block' : 'none';
+  $('cycleModelNote').style.display = state.priceModel === 'cycle' ? 'block' : 'none';
+
+  // V11 fields
+  $('powerEscalation').value = state.powerEscalation;
+  $('powerEscalationRange').value = state.powerEscalation;
+  $('discountRate').value = state.discountRate;
+  $('discountRateRange').value = state.discountRate;
+  $('taxEnabled').checked = state.taxEnabled;
+  $('taxJurisdiction').value = state.taxJurisdiction;
+  $('taxRate').value = state.taxRate;
+  $('taxRateRange').value = state.taxRate;
+  $('depreciationYears').value = state.depreciationYears;
+  $('depreciationYearsRange').value = state.depreciationYears;
+}
+
+async function fetchBtcPrice() {
+  $('currentBtcPrice').value = 'Loading...';
+  try {
+    const res = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot');
+    const data = await res.json();
+    btcSpotUSD = +data.data.amount;
+    $('currentBtcPrice').value = '$' + fmtMoney(btcSpotUSD);
+    modelCache.key = null;
+    updateAll();
+  } catch { $('currentBtcPrice').value = 'Failed - use override'; }
+}
+
+async function fetchNetworkHashrate() {
+  const btn = $('fetchHashrateBtn');
+  const status = $('hashrateStatus');
+  btn.disabled = true;
+  btn.textContent = '⟳ Fetching...';
+  status.textContent = '';
+  status.style.color = 'var(--muted)';
+
+  let eh = null;
+
+  // Try mempool.space API first (reliable CORS)
+  try {
+    const res = await fetch('https://mempool.space/api/v1/mining/hashrate/1w', {cache: 'no-store'});
+    if (res.ok) {
+      const json = await res.json();
+      const current = json?.currentHashrate || json?.hashrates?.[json.hashrates.length - 1]?.avgHashrate;
+      if (Number.isFinite(current) && current > 0) {
+        eh = current / 1e18; // H/s to EH/s
+      }
+    }
+  } catch {}
+
+  // Fallback: Blockchain.info API
+  if (!eh) {
+    try {
+      const res = await fetch('https://api.blockchain.info/charts/hash-rate?timespan=30days&format=json&sampled=true', {cache: 'no-store'});
+      if (res.ok) {
+        const json = await res.json();
+        const values = Array.isArray(json?.values) ? json.values : [];
+        const last = values.length ? values[values.length - 1] : null;
+        const th = Number(last?.y);
+        if (Number.isFinite(th) && th > 0) {
+          eh = th / 1_000_000; // TH/s to EH/s
+        }
+      }
+    } catch {}
+  }
+
+  if (eh && Number.isFinite(eh) && eh > 0) {
+    const rounded = Math.round(eh);
+    state.networkHashrateEH = rounded;
+    $('networkHashrateEH').value = rounded;
+    $('networkHashrateEHRange').value = rounded;
+    status.textContent = `✓ ${rounded.toLocaleString()} EH/s`;
+    status.style.color = 'var(--success)';
+    modelCache.key = null;
+    updateAll();
+  } else {
+    status.textContent = 'Failed — enter manually';
+    status.style.color = 'var(--warn)';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⟳ Fetch Live';
+}
+
+async function fetchFxRate() {
+  const btn = $('refreshFx');
+  const input = $('fxRate');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  let rate = null;
+
+  // Try open.er-api.com (no key required)
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      rate = json?.rates?.EUR;
+    }
+  } catch {}
+
+  // Fallback: exchangerate-api
+  if (!rate) {
+    try {
+      const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        rate = json?.rates?.EUR;
+      }
+    } catch {}
+  }
+
+  if (rate && Number.isFinite(rate) && rate > 0) {
+    state.fxRate = +rate.toFixed(4);
+    input.value = state.fxRate;
+    modelCache.key = null;
+    updateAll();
+  }
+
+  btn.disabled = false;
+  btn.textContent = '↻';
+}
+
+function buildReportHtml() {
+  const out = model();
+  const sym = symbolFor(state.currency);
+  const ts = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  // Try to embed chart as image
+  let chartImg = '';
+  const c = $('execChart');
+  try { if (c && c.toDataURL) chartImg = c.toDataURL('image/png'); } catch {}
+
+  const irrVal = out.irrANoResale;
+  const irrStr = irrVal === null ? '—' : `${(irrVal * 100).toFixed(1)}%`;
+  const moicVal = out.moicNoResale;
+  const moicStr = `${moicVal.toFixed(2)}x`;
+  const paybackMonths = out.paybackMonth ? `${out.paybackMonth}` : '—';
+
+  // Comparison (based on selected mode)
+  const isDca = state.compareMode === 'dca';
+  const compareBtc = isDca ? out.trueDcaBtc : out.cashMatchedBtc;
+  const compareLabel = isDca ? 'True DCA' : 'Cash-Matched Buy';
+  const miningAdvantage = out.endingBtc - compareBtc;
+  const advPct = compareBtc > 0 ? ((out.endingBtc / compareBtc - 1) * 100) : 0;
+
+  // Cost per BTC
+  const costPerBtc = out.costPerBtc;
+  const btcPrice = getBtcPrice();
+
+  // Determine grade
+  let grade = 'Review', gradeColor = '#94A3B8';
+  if (moicVal >= 1.5 && out.paybackMonth && out.paybackMonth <= 36) { grade = 'Excellent'; gradeColor = '#10B981'; }
+  else if (moicVal >= 1.2) { grade = 'Good'; gradeColor = '#3B82F6'; }
+  else if (moicVal >= 1.0) { grade = 'Fair'; gradeColor = '#d6b389'; }
+
+  // Price model description
+  let priceModelDesc = '';
+  let priceProjectionsHtml = '';
+  if (state.priceModel === 'custom') {
+    priceModelDesc = `Custom Annual`;
+    priceProjectionsHtml = `
+        <tr><td>Year 1 Price Change</td><td>${state.priceY1 >= 0 ? '+' : ''}${state.priceY1}%</td></tr>
+        <tr><td>Year 2 Price Change</td><td>${state.priceY2 >= 0 ? '+' : ''}${state.priceY2}%</td></tr>
+        <tr><td>Year 3 Price Change</td><td>${state.priceY3 >= 0 ? '+' : ''}${state.priceY3}%</td></tr>
+        <tr><td>Year 4 Price Change</td><td>${state.priceY4 >= 0 ? '+' : ''}${state.priceY4}%</td></tr>
+        <tr><td>Year 5 Price Change</td><td>${state.priceY5 >= 0 ? '+' : ''}${state.priceY5}%</td></tr>`;
+  } else {
+    priceModelDesc = `Cycle Model: ${state.priceDrift > 0 ? '+' : ''}${state.priceDrift.toFixed(0)}%/yr drift, ±${state.priceCycleAmp}% amplitude`;
+  }
+
+  // 5-year BTC accumulation
+  const yearlyBtc = [];
+  const prices = getPrices(60);
+  for (let yr = 1; yr <= 5; yr++) {
+    const endMonth = Math.min(yr * 12, out.rows.length);
+    const btc = out.rows.slice(0, endMonth).reduce((a, r) => a + r.netBtc, 0);
+    const price = prices[endMonth] || prices[prices.length - 1];
+    yearlyBtc.push({ yr, btc, value: btc * price });
+  }
+
+  return `<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Pantheon Mining - Investment Snapshot</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#01111d;
+    --panel:#121E2B;
+    --panel2:#162638;
+    --text:#F5F7FA;
+    --muted:#7a8fa0;
+    --line:#263647;
+    --accent:#d6b389;
+    --accent2:#c9a06e;
+    --success:#34D399;
+    --warn:#FCD34D;
+    --danger:#F87171;
+    --radius:14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Montserrat', 'Inter', system-ui, sans-serif; background: linear-gradient(180deg,#010e18,#01111d 35%,#010e18); color: var(--text); min-height: 100vh; padding: 40px 32px; }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  /* Header */
+  .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: #01111d; box-shadow: 0 4px 20px rgba(214,179,137,.3); }
+  .logo-text { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 3px; letter-spacing: 0.5px; }
+  .header-right { text-align: right; }
+  .header-right .project { font-size: 15px; font-weight: 600; }
+  .header-right .details { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .header-right .timestamp { font-size: 11px; color: var(--muted); margin-top: 8px; opacity: 0.7; }
+
+  /* Grade Badge */
+  .grade-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 24px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 24px; }
+  .grade-badge.excellent { background: rgba(52,211,153,.15); color: var(--success); border: 1px solid rgba(52,211,153,.3); }
+  .grade-badge.good { background: rgba(96,165,250,.15); color: #60A5FA; border: 1px solid rgba(96,165,250,.3); }
+  .grade-badge.fair { background: rgba(251,191,36,.15); color: var(--warn); border: 1px solid rgba(251,191,36,.3); }
+  .grade-badge.poor { background: rgba(248,113,113,.15); color: var(--danger); border: 1px solid rgba(248,113,113,.3); }
+
+  /* Hero Metrics */
+  .hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .hero-card { background: rgba(23,36,51,.9); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 20px; text-align: center; position: relative; transition: all .2s; }
+  .hero-card:hover { border-color: rgba(214,179,137,.3); transform: translateY(-2px); }
+  .hero-card.highlight { border-color: rgba(214,179,137,.4); background: linear-gradient(135deg, rgba(214,179,137,.08), rgba(23,36,51,.9)); }
+  .hero-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .hero-value { font-size: 40px; font-weight: 700; line-height: 1; margin-bottom: 8px; }
+  .hero-card.highlight .hero-value { color: var(--accent); }
+  .hero-card.positive .hero-value { color: var(--success); }
+  .hero-sub { font-size: 12px; color: var(--muted); }
+
+  /* Section Titles */
+  .section-title { font-size: 11px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+  /* Comparison Cards */
+  .comparison { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; margin-bottom: 24px; }
+  .compare-card { background: rgba(23,36,51,.7); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 18px; text-align: center; transition: all .2s; }
+  .compare-card:hover { border-color: rgba(214,179,137,.3); }
+  .compare-card.winner { border-color: rgba(52,211,153,.5); background: linear-gradient(135deg, rgba(52,211,153,.1), rgba(23,36,51,.7)); }
+  .compare-method { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+  .compare-btc { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .compare-card.winner .compare-btc { color: var(--success); }
+  .compare-label { font-size: 11px; color: var(--muted); }
+  .compare-vs { display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--muted); }
+
+  /* Advantage Banner */
+  .advantage-banner { background: linear-gradient(90deg, rgba(52,211,153,.12), transparent); border-left: 4px solid var(--success); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin-bottom: 28px; }
+  .advantage-banner.negative { background: linear-gradient(90deg, rgba(248,113,113,.12), transparent); border-left-color: var(--danger); }
+  .advantage-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .advantage-value { font-size: 22px; font-weight: 700; color: var(--success); margin-top: 6px; }
+  .advantage-banner.negative .advantage-value { color: var(--danger); }
+
+  /* Stats Grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .stat-card { background: rgba(1,17,29,.55); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 14px; transition: all .15s; }
+  .stat-card:hover { border-color: rgba(214,179,137,.3); transform: translateY(-2px); }
+  .stat-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+  .stat-value { font-size: 18px; font-weight: 700; }
+
+  /* Timeline */
+  .timeline { display: flex; gap: 10px; margin-bottom: 28px; }
+  .timeline-year { flex: 1; background: rgba(1,17,29,.5); border: 1px solid var(--line); border-radius: 12px; padding: 14px 10px; text-align: center; transition: all .15s; }
+  .timeline-year:hover { border-color: rgba(214,179,137,.3); }
+  .timeline-yr { font-size: 10px; font-weight: 600; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; }
+  .timeline-btc { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .timeline-val { font-size: 11px; color: var(--muted); }
+
+  /* Chart */
+  .chart-container { background: rgba(1,17,29,.35); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 28px; }
+  .chart-container img { width: 100%; border-radius: 10px; }
+
+  /* Assumptions Table */
+  .drivers-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 28px; background: rgba(23,36,51,.5); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+  .drivers-table td { padding: 12px 16px; border-bottom: 1px solid rgba(47,69,93,.5); }
+  .drivers-table tr:last-child td { border-bottom: none; }
+  .drivers-table td:first-child { color: var(--muted); width: 55%; }
+  .drivers-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .drivers-table tr:hover { background: rgba(214,179,137,.03); }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .footer-risks { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 18px; padding: 14px 16px; background: rgba(1,17,29,.4); border-radius: 10px; border-left: 3px solid var(--accent); }
+  .footer-risks strong { color: var(--accent); }
+  .footer-disclaimer { font-size: 10px; color: var(--muted); opacity: 0.6; text-align: center; line-height: 1.6; }
+
+  /* Print Styles */
+  @media print {
+    body { background: #fff; color: #1a1a2e; padding: 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: 100%; }
+    .hero-card, .stat-card, .compare-card, .timeline-year, .chart-container, .drivers-table { background: #f8fafc; border-color: #e2e8f0; }
+    .hero-value, .hero-card.highlight .hero-value { color: #d6b389; }
+    .hero-card.positive .hero-value, .compare-card.winner .compare-btc, .advantage-value { color: #059669; }
+    .advantage-banner.negative .advantage-value { color: #dc2626; }
+    .section-title, .logo-sub, .timeline-yr, .footer-risks strong { color: #d6b389; }
+    .hero-label, .stat-label, .compare-method, .compare-label, .hero-sub, .timeline-val, .drivers-table td:first-child { color: #64748b; }
+    .grade-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">P</div>
+        <div>
+          <div class="logo-text">Pantheon Mining</div>
+          <div class="logo-sub">Investment Snapshot</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="project">UAE: Operation SandHash 2</div>
+        <div class="details">${state.minerCount.toLocaleString()} × ${state.minerModel.toUpperCase()} miners · ${state.holdMonths} month horizon</div>
+        <div class="timestamp">Generated ${ts} at ${timeStr}</div>
+      </div>
+    </div>
+
+    <div class="grade-badge ${grade === 'Review' ? 'poor' : grade.toLowerCase()}">${grade === 'Excellent' ? '★' : grade === 'Good' ? '●' : grade === 'Fair' ? '◐' : '○'} Investment Grade: ${grade}</div>
+
+    <div class="hero">
+      <div class="hero-card highlight">
+        <div class="hero-label">Return Multiple</div>
+        <div class="hero-value">${moicStr}</div>
+        <div class="hero-sub">MOIC (BTC value only)</div>
+      </div>
+      <div class="hero-card${irrVal !== null && irrVal >= 0.15 ? ' positive' : ''}">
+        <div class="hero-label">Annualized Return</div>
+        <div class="hero-value">${irrStr}</div>
+        <div class="hero-sub">IRR (pre-tax)</div>
+      </div>
+      <div class="hero-card${paybackMonths !== '—' && parseInt(paybackMonths) <= 30 ? ' positive' : ''}">
+        <div class="hero-label">Capital Recovery</div>
+        <div class="hero-value">${paybackMonths}<span style="font-size:18px;font-weight:500;color:var(--muted)">mo</span></div>
+        <div class="hero-sub">Payback period</div>
+      </div>
+    </div>
+
+    <div class="section-title">Mining vs. ${compareLabel}</div>
+    <div class="comparison">
+      <div class="compare-card${out.endingBtc > compareBtc ? ' winner' : ''}">
+        <div class="compare-method">Mining</div>
+        <div class="compare-btc">${fmtBtc(out.endingBtc, 4)}</div>
+        <div class="compare-label">BTC acquired</div>
+      </div>
+      <div class="compare-vs">VS</div>
+      <div class="compare-card${compareBtc > out.endingBtc ? ' winner' : ''}">
+        <div class="compare-method">${compareLabel}</div>
+        <div class="compare-btc">${fmtBtc(compareBtc, 4)}</div>
+        <div class="compare-label">BTC acquired</div>
+      </div>
+    </div>
+
+    <div class="advantage-banner${miningAdvantage < 0 ? ' negative' : ''}">
+      <div class="advantage-label">Mining ${miningAdvantage >= 0 ? 'Advantage' : 'Disadvantage'}</div>
+      <div class="advantage-value">${miningAdvantage >= 0 ? '+' : ''}${fmtBtc(miningAdvantage, 4)} BTC (${advPct >= 0 ? '+' : ''}${advPct.toFixed(1)}%)</div>
+    </div>
+
+    <div class="section-title">Investment Summary</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Capex</div>
+        <div class="stat-value">${sym}${fmtMoney(toDisplay(out.capex))}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cost per BTC</div>
+        <div class="stat-value">${sym}${fmtMoney(toDisplay(costPerBtc))}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ending BTC</div>
+        <div class="stat-value">${fmtBtc(out.endingBtc, 4)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ending Value</div>
+        <div class="stat-value">${sym}${fmtMoney(toDisplay(out.endingValue))}</div>
+      </div>
+    </div>
+
+    <div class="section-title">5-Year BTC Accumulation</div>
+    <div class="timeline">
+      ${yearlyBtc.map(y => `
+        <div class="timeline-year">
+          <div class="timeline-yr">Year ${y.yr}</div>
+          <div class="timeline-btc">${fmtBtc(y.btc, 3)}</div>
+          <div class="timeline-val">${sym}${fmtMoney(toDisplay(y.value))}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    ${chartImg ? `
+    <div class="section-title">Net Value Projection</div>
+    <div class="chart-container">
+      <img src="${chartImg}" alt="Net Value Chart">
+    </div>
+    ` : ''}
+
+    <div class="section-title">Model Assumptions</div>
+    <table class="drivers-table">
+      <tbody>
+        <tr><td>Starting BTC Price</td><td>${sym}${fmtMoney(toDisplay(btcPrice))}</td></tr>
+        <tr><td>Price Model</td><td>${priceModelDesc}</td></tr>
+        ${priceProjectionsHtml}
+        <tr><td>Power Cost</td><td>${sym}${state.powerCost.toFixed(3)}/kWh</td></tr>
+        <tr><td>Network Hashrate</td><td>${state.networkHashrateEH.toLocaleString()} EH/s</td></tr>
+        <tr><td>Network Difficulty Growth (annual)</td><td>${state.difficultyGrowth >= 0 ? '+' : ''}${state.difficultyGrowth.toFixed(1)}%</td></tr>
+        <tr><td>ASIC Degradation (annual)</td><td>${state.degradation.toFixed(1)}%</td></tr>
+        <tr><td>Uptime</td><td>${state.uptime.toFixed(1)}%</td></tr>
+        <tr><td>All-in Fees (Pool + Hosting + Mgmt + Insurance + Repairs)</td><td>${(state.poolFee + state.hostingFee + state.managementFee + state.insuranceFee + state.repairReserve).toFixed(2)}%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer">
+      <div class="footer-risks">
+        <strong>Risk Factors:</strong> Bitcoin price volatility · Network difficulty changes · Downtime and hardware failure · Hosting/power counterparty risk · Regulatory and tax uncertainty
+      </div>
+      <div class="footer-disclaimer">
+        This is a simplified, pre-tax model for illustrative purposes only. Past performance does not guarantee future results. All projections are scenario-based estimates and should not be construed as investment advice.<br>© ${new Date().getFullYear()} Pantheon Mining
+      </div>
+    </div>
+  </div>
+</body></html>`;
+}
+
+function loadFromUrl() {
+  const params = new URLSearchParams(location.search);
+  if (params.size === 0) return;
+  params.forEach((v, k) => {
+    if (k in DEFAULTS) {
+      if (typeof DEFAULTS[k] === 'boolean') state[k] = v === 'true' || v === '1';
+      else if (typeof DEFAULTS[k] === 'number') state[k] = +v;
+      else state[k] = v;
+    }
+  });
+}
+
+async function init() {
+  loadFromUrl();
+  applyStateToUI();
+  bindEvents();
+
+  // V11: Splash screen progress
+  updateSplash(20, 'Loading configuration...');
+  await new Promise(r => setTimeout(r, 200));
+
+  updateSplash(40, 'Fetching BTC price...');
+  await fetchBtcPrice();
+
+  updateSplash(60, 'Fetching network hashrate...');
+  await fetchNetworkHashrate();
+
+  updateSplash(80, 'Running calculations...');
+  await new Promise(r => setTimeout(r, 150));
+  updateAll();
+
+  updateSplash(100, 'Ready');
+  updateFooterTimestamp();
+  hideSplash();
+
+  // V11: Animate hero metrics on first load
+  setTimeout(() => {
+    const out = model();
+    if ($('heroMoic')) animateCounter($('heroMoic'), out.moicNoResale, 1200, '', 'x');
+    if ($('heroPayback') && out.paybackMonth) animateCounter($('heroPayback'), out.paybackMonth, 800, '', '', 0);
+  }, 600);
+}
+
+init();
+</script>
+</body>
+</html>
