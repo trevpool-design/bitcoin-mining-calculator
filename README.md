@@ -1,6 +1,6 @@
 # Bitcoin Mining Calculator
 
-https://trevpool-design.github.io/bitcoin-mining-calculator/calculator.html
+[https://trevpool-design.github.io/bitcoin-mining-calculator/calculator.html](https://trevpool-design.github.io/bitcoin-mining-calculator/Mining_Calculator_v11.html)
 
 Pantheon Mining Calculator v8.3 (Enhanced Investor Summary)
 
